@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Diagnostic · {{NOMBRE_NEGOCIO}}</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090807;--bd:#1e1c1a;--bd2:#2a2724;
+  --ink:#edeae4;--sub:#b8b2aa;--dim:#6a6460;
+  --red:#d93030;--red-bg:rgba(217,48,48,.08);
+  --green:#22b86a;--green-bg:rgba(34,184,106,.09);
+  --orange:#f07020;--orange-bg:rgba(240,112,32,.09);
+  --card:#131210;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Satoshi",system-ui,sans-serif;
+  line-height:1.4;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;justify-content:center}
+.tn{font-variant-numeric:tabular-nums}
+svg.ic{display:block;flex:none}
+
+/* ── PASSWORD ── */
+#pw-screen{position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px}
+#pw-screen.out{opacity:0;pointer-events:none;transition:opacity .35s ease}
+.pw-brand{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.3px;margin-bottom:4px}
+.pw-brand em{display:none}
+.pw-label{font-size:10px;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:28px}
+.pw-field{width:100%;max-width:280px;background:var(--card);border:1px solid var(--bd2);
+  border-radius:8px;padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  font-family:inherit;outline:none;text-align:center;letter-spacing:.5px;
+  -webkit-text-security:disc}
+.pw-field:focus{border-color:var(--dim)}
+.pw-field.err{border-color:var(--red);animation:shake .3s ease}
+.pw-btn{margin-top:12px;width:100%;max-width:280px;background:var(--ink);color:var(--bg);
+  border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:700;
+  font-family:inherit;cursor:pointer}
+.pw-btn:active{opacity:.85}
+.pw-err{font-size:11px;color:var(--red);margin-top:10px;height:16px;text-align:center}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;z-index:200;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:opacity .4s ease}
+#loader.out{opacity:0;pointer-events:none}
+.ld-brand{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.ld-brand em{display:none}
+.ld-sub{font-size:10px;color:var(--dim);letter-spacing:.3px}
+.ld-bar{width:48px;height:2px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:4px}
+.ld-fill{height:100%;background:var(--sub);border-radius:2px;width:0;
+  animation:ldfill 1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ldfill{0%{width:0}60%{width:70%}100%{width:100%}}
+
+/* ── CANVAS ── */
+.phone{width:100%;max-width:440px;min-height:100vh;background:var(--bg);
+  padding:0 0 calc(40px + env(safe-area-inset-bottom));opacity:0;transition:opacity .3s ease .1s}
+
+/* ── HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:16px 16px 14px;border-bottom:1px solid var(--bd)}
+.brand{font-weight:700;font-size:12.5px;color:var(--ink)}
+.brand small{display:block;font-weight:500;font-size:8.5px;color:var(--dim);margin-top:.5px}
+.hdr-r{text-align:right}
+.hdr-case{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.hdr-biz{font-size:11px;font-weight:600;color:var(--sub);margin-top:2px}
+
+.body{padding:0 16px}
+
+/* ── VERDICT ── */
+.vd{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--bd)}
+.vd-status{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.vd-status::before{content:'';width:4px;height:4px;border-radius:50%;background:#fff;flex:none}
+.vd h1{font-size:22px;font-weight:700;letter-spacing:-.6px;line-height:1.2;color:var(--ink)}
+.vd h1 .hl{color:var(--red);font-size:28px;letter-spacing:-.9px}
+.score-row{display:flex;align-items:baseline;gap:6px;margin-top:16px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  padding-top:14px;border-top:1px solid var(--bd)}
+.score-n{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--ink)}
+.score-denom{font-size:11px;color:var(--dim);font-weight:500}
+.score-lbl{font-size:11px;color:var(--sub);margin-left:2px}
+.score-go{margin-left:auto;font-size:10px;color:var(--dim)}
+.krow{display:flex;gap:6px;margin-top:12px}
+.kc{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:9px 10px}
+.kc .kk{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);font-weight:700}
+.kc .kv{font-size:14px;font-weight:700;margin-top:3px;letter-spacing:-.3px;color:var(--ink)}
+.kc .kt{font-size:9px;font-weight:700;margin-top:3px;color:var(--sub)}
+
+/* ── CARD ── */
+.c{background:var(--card);border:1px solid var(--bd);border-radius:8px;
+  position:relative;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  display:block;width:100%;text-align:left;color:inherit;font-family:inherit;margin-bottom:8px}
+.c:active{opacity:.82}
+.inside{border-top:1px solid var(--bd);padding:6px 13px;display:flex;align-items:center;flex-wrap:wrap}
+.inside .ilbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-right:7px}
+.inside .it{font-size:9px;color:var(--dim)}
+
+/* ── THE MOVE ── */
+.move-c{border-left:2px solid var(--green)}
+.move-body{padding:14px 13px 0}
+.move-ey{font-size:8.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.move-big{font-size:36px;font-weight:700;letter-spacing:-1.6px;color:var(--green);line-height:1}
+.move-big small{font-size:13px;opacity:.6;font-weight:600}
+.move-ti{font-size:13.5px;font-weight:700;letter-spacing:-.3px;margin-top:7px;line-height:1.2;color:var(--ink)}
+.move-de{font-size:11.5px;color:var(--sub);margin-top:5px;line-height:1.5}
+.scen-mini{display:flex;margin:12px 0 13px;border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.sm-col{flex:1;padding:9px 10px}
+.sm-col+.sm-col{border-left:1px solid var(--bd)}
+.sm-col .ek{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:4px}
+.sm-col .ev{font-size:13px;font-weight:700;color:var(--ink)}
+.sm-col .ek2{font-size:9px;color:var(--sub);margin-top:2px}
+.sm-col .ev2{font-size:13px;font-weight:700;color:var(--green)}
+
+/* ── CHART ── */
+.bc{padding:13px 13px 0}
+.bc .bch{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.bc .bcs{font-size:10px;color:var(--sub);margin-bottom:10px}
+
+/* ── PROBLEM ── */
+.g8{display:grid;gap:8px;margin-bottom:8px}
+.g31{grid-template-columns:3fr 1.1fr}
+.g2{grid-template-columns:1fr 1fr}
+.prob-c{border-left:2px solid var(--bd2);margin-bottom:0}
+.prob-body{padding:13px 12px 0}
+.prob-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.prob-n{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--ink);line-height:1}
+.prob-n small{font-size:11px;color:var(--dim);font-weight:600}
+.prob-t{font-size:12px;font-weight:700;margin-top:4px;line-height:1.3;color:var(--ink)}
+.prob-flow{padding:0 10px 12px;margin-top:10px}
+.sbar{display:flex;height:3px;border-radius:2px;overflow:hidden;gap:2px;margin-bottom:8px}
+.sbar i{display:block}
+.pf-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10.5px}
+.pf-row .sw{width:5px;height:5px;border-radius:1px;flex:none}
+.pf-row .nm{flex:1;color:var(--sub)}
+.pf-row .am{font-weight:700;color:var(--ink)}
+
+/* ── INDICATORS ── */
+.ind-c{display:flex;flex-direction:column;padding:11px 10px 0;margin-bottom:0}
+.ind{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.ind+.ind{border-top:1px solid var(--bd)}
+.ind .il{font-size:9.5px;font-weight:600;color:var(--ink)}
+.ind .is{font-size:8.5px;font-weight:700;color:var(--sub)}
+
+/* ── TILES ── */
+.tile{padding:13px 12px;margin-bottom:0;display:flex;flex-direction:column}
+.tile .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tile .tl{font-size:11px;color:var(--sub);font-weight:600}
+.tile .tv{font-size:20px;font-weight:700;letter-spacing:-.7px;line-height:1;color:var(--ink)}
+.tile .tsub{font-size:10px;color:var(--dim);margin-top:5px;line-height:1.4;flex:1}
+
+/* ── HISTORIAL CARD ── */
+.hist-card{padding:13px 12px 0}
+.hist-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--sub);margin-bottom:5px}
+.hist-ti{font-size:13px;font-weight:700;letter-spacing:-.3px;color:var(--ink);margin-bottom:3px}
+.hist-sub{font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.4}
+.hist-months{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px}
+.hm{text-align:center}
+.hm-lbl{font-size:7.5px;color:var(--dim);margin-bottom:4px}
+.hm-val{font-size:10px;font-weight:700;color:var(--ink)}
+.hm-pct{font-size:8px;color:var(--sub);margin-top:1px}
+.hm-bar{width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden}
+.hm-fill{height:100%;border-radius:2px;background:var(--sub)}
+.hm.active .hm-lbl{color:var(--red);font-weight:700}
+.hm.active .hm-val{color:var(--red)}
+.hm.active .hm-pct{color:var(--red)}
+.hm.active .hm-fill{background:var(--red)}
+.hm.hm-up .hm-lbl{color:var(--green);font-weight:700}
+.hm.hm-up .hm-val{color:var(--green)}
+.hm.hm-up .hm-pct{color:var(--green)}
+.hm.hm-up .hm-fill{background:var(--green)}
+.brujula{border-top:1px solid var(--bd);padding:12px 0 13px}
+.brujula-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.brujula-track{display:flex;align-items:center;gap:10px}
+.brujula-bar{flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative}
+.brujula-fill{position:absolute;left:0;top:0;height:100%;border-radius:2px}
+.brujula-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.brujula-state{font-size:10px;font-weight:700;white-space:nowrap}
+.hist-next{margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--bd)}
+.hist-next-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.hist-next-msg{font-size:12px;color:var(--sub);line-height:1.5}
+
+/* ── CLOSE ── */
+.close-s{padding:10px 0 8px;margin-top:6px}
+.close-ph{font-size:16px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;color:var(--ink)}
+.close-sb{font-size:11px;color:var(--sub);margin-bottom:12px}
+.cas{display:flex;flex-direction:column;gap:7px}
+.ca{padding:12px 13px;border-radius:7px;background:var(--card);border:1px solid var(--bd)}
+.ca .caw{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.ca .cat{font-size:12.5px;line-height:1.6;color:var(--ink)}.ca .cat b{color:var(--ink);font-weight:700}
+
+/* ── FOOTER ── */
+.foot{margin-top:22px;padding-top:14px;border-top:1px solid var(--bd);
+  display:flex;justify-content:space-between;align-items:center}
+.foot-l{font-size:9px;color:var(--dim)}
+.foot-r{font-size:9px;color:var(--dim)}
+.chv{color:var(--dim)}
+
+/* ── SHEETS ── */
+.sh{position:fixed;inset:0;z-index:100;background:var(--bg);
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);
+  overflow-y:auto;display:flex;justify-content:center}
+.sh.open{transform:translateY(0)}
+.si{width:100%;max-width:440px;padding:0 16px calc(48px + env(safe-area-inset-bottom))}
+.sb2{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0 12px;background:var(--bg);border-bottom:1px solid var(--bd);
+  margin-bottom:14px;z-index:2}
+.sb2 .st{font-size:13px;font-weight:700;color:var(--ink)}
+.sclose{width:28px;height:28px;border-radius:50%;border:none;background:transparent;
+  color:var(--sub);font-size:16px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sclose:active{color:var(--ink)}
+.blk{border:1px solid var(--bd);border-radius:7px;padding:16px 14px;background:var(--card);margin-bottom:12px}
+.bh{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;font-weight:700}
+.lead{font-size:13px;line-height:1.58;color:var(--sub)}.lead b{color:var(--ink);font-weight:600}
+.lead .bad{color:var(--red)}.lead .good{color:var(--green)}
+.krow2{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.krow2 .kk{font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--dim)}
+.krow2 .kv{font-size:17px;font-weight:700;margin-top:2px;color:var(--ink)}
+.drow{display:flex;align-items:center;justify-content:space-between;padding:11px 0}
+.drow+.drow{border-top:1px solid var(--bd)}
+.drow .dk{font-size:12px;color:var(--sub)}.drow .dv{font-size:14px;font-weight:700;color:var(--ink)}
+.drow .dd{font-size:10px;font-weight:600;text-align:right;min-width:78px;color:var(--sub)}
+.step{display:flex;gap:10px;padding:11px 0}.step+.step{border-top:1px solid var(--bd)}
+.step .no{width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.08);
+  color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.step .tx{font-size:12px;line-height:1.5;color:var(--sub)}.step .tx b{color:var(--ink)}
+.tline{display:flex;gap:10px;padding:10px 0}.tline+.tline{border-top:1px solid var(--bd)}
+.tline .tw{font-size:9px;font-weight:700;color:var(--sub);width:58px;flex:none;padding-top:1px}
+.tline .tt{font-size:12px;line-height:1.45;color:var(--ink)}
+.wt{padding:11px 0}.wt+.wt{border-top:1px solid var(--bd)}
+.wt .wh{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--ink)}
+.wt .wd{font-size:11.5px;color:var(--sub);line-height:1.5}
+.svc{display:flex;align-items:center;gap:10px;padding:11px 0}.svc+.svc{border-top:1px solid var(--bd)}
+.svc .rk{width:16px;font-size:11px;font-weight:700;color:var(--dim)}
+.svc .sinfo{flex:1}
+.svc .sinfo .sn{font-size:12.5px;font-weight:600;color:var(--ink)}
+.svc .sinfo .sb{font-size:10px;color:var(--dim);margin-top:1px}
+.svc .svc-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;margin:0 8px;overflow:hidden}
+.svc .svc-bar-fill{height:100%;border-radius:2px;background:var(--sub)}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;
+  color:var(--sub);background:rgba(255,255,255,.05)}
+.ins{padding:11px 0}.ins+.ins{border-top:1px solid var(--bd)}
+.ins .il{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ins .it{font-size:12px;color:var(--sub);line-height:1.5}
+.area{display:flex;align-items:center;gap:10px;padding:9px 0}.area+.area{border-top:1px solid var(--bd)}
+.area .an{flex:1;font-size:12.5px;color:var(--ink)}
+.area .as{font-size:10px;font-weight:700;color:var(--sub)}
+.spl{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:2px;margin:3px 0 12px}.spl i{display:block}
+.vs .sv{padding:11px 0}.vs .sv+.sv{border-top:1px solid var(--bd)}
+.vs .stag{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.vs .sq{font-size:12.5px;font-style:italic;color:var(--sub);line-height:1.5}
+/* PE gauge */
+.pe-gauge{margin-top:14px}
+.pe-gauge-title{font-size:9px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.pe-gauge-track{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.pe-gauge-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--red))}
+.pe-gauge-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim)}
+/* VS comparison */
+.vs-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.vs-col{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:6px;padding:12px 10px}
+.vs-col.vs-after{border-color:rgba(34,184,106,.2);background:rgba(34,184,106,.04)}
+.vs-era{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.vs-after .vs-era{color:var(--green)}
+.vs-met{margin-bottom:8px}
+.vs-lbl{font-size:9px;color:var(--dim);margin-bottom:2px}
+.vs-val{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.4px}
+.vs-after .vs-val{color:var(--green)}
+.vs-note{font-size:9.5px;color:var(--sub);margin-top:1px}
+.vs-changes{margin-top:10px;border-top:1px solid var(--bd);padding-top:10px;display:flex;flex-direction:column;gap:5px}
+.vs-change{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--sub)}
+.vs-change-icon{color:var(--green);font-size:10px;margin-top:1px;flex:none}
+/* Deltas row */
+.deltas{display:flex;gap:8px;margin-top:12px}
+.delta{flex:1;text-align:center;background:rgba(34,184,106,.06);border:1px solid rgba(34,184,106,.15);border-radius:6px;padding:10px 6px}
+.delta-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.delta-n{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-.4px}
+.delta-note{font-size:9px;color:var(--sub);margin-top:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="pw-screen">
+  <div class="pw-brand">Acly<em>.</em></div>
+  <div class="pw-label">Financial Diagnostic</div>
+  <input class="pw-field" id="pw-input" type="password" placeholder="Enter access code" autocomplete="off" autocorrect="off" spellcheck="false">
+  <button class="pw-btn" id="pw-btn">Open diagnostic</button>
+  <div class="pw-err" id="pw-err"></div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" style="display:none">
+  <div class="ld-brand">Acly<em>.</em></div>
+  <div class="ld-sub">Preparing {{NOMBRE_NEGOCIO}}</div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="phone" id="main">
+
+<div class="hdr">
+  <div class="brand">Acly<small>Financial Diagnostic</small></div>
+  <div class="hdr-r">
+    <div class="hdr-case">Month {{NUM_DIAGNOSTICO}} · {{MES_DIAGNOSTICO}}</div>
+    <div class="hdr-biz">{{NOMBRE_NEGOCIO}}</div>
+  </div>
+</div>
+
+<div class="body">
+
+<!-- VERDICT -->
+<div class="vd">
+  <div class="vd-status">{{SCORE_ESTADO_LABEL}} · {{MES_DIAGNOSTICO}}</div>
+  <h1>{{PORTADA_FRASE_LINEA1}}<br><span class="hl">{{PORTADA_FRASE_LINEA2}}</span></h1>
+
+  <div class="score-row" data-sh="score">
+    <span class="score-n tn">{{SCORE}}</span>
+    <span class="score-denom"> /100</span>
+    <span class="score-lbl">Health score</span>
+    <span class="score-go">5 areas ›</span>
+  </div>
+
+  <div class="krow">
+    <div class="kc">
+      <div class="kk">{{MET1_LABEL}}</div>
+      <div class="kv tn">{{MET1_NUM}}</div>
+      <div class="kt">{{MET1_TAG}}</div>
+    </div>
+    <div class="kc">
+      <div class="kk">{{MET2_LABEL}}</div>
+      <div class="kv tn" style="color:var(--red)">{{MET2_VAL}}</div>
+      <div class="kt">{{MET2_TAG}}</div>
+    </div>
+    <div class="kc">
+      <div class="kk">{{MET3_LABEL}}</div>
+      <div class="kv tn">{{MET3_NUM}}</div>
+      <div class="kt">{{MET3_TAG}}</div>
+    </div>
+  </div>
+</div>
+
+<!-- THE MOVE -->
+<div class="c move-c" data-sh="move">
+  <div class="move-body">
+    <div class="move-ey">
+      <span>{{ACCION_EYEBROW}}</span>
+      <svg class="ic chv" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div class="move-big tn">+${{ACCION_IMPACTO_NUM}}<small> {{ACCION_IMPACTO_LBL}}</small></div>
+    <div class="move-ti">{{ACCION_HERO_TITULO}}</div>
+    <div class="move-de">{{ACCION_HERO_DESC}}</div>
+    <div class="scen-mini">
+      <div class="sm-col">
+        <div class="ek">{{VS_ERA_NOW}}</div>
+        <div class="ev tn">{{VS_MET1_NOW_NUM}}</div>
+        <div class="ek2">{{VS_MET1_NOW_NOTE}}</div>
+      </div>
+      <div class="sm-col">
+        <div class="ek">{{VS_ERA_LATER}}</div>
+        <div class="ev2 tn">{{VS_MET1_LATER_NUM}}</div>
+        <div class="ek2">{{VS_MET1_LATER_NOTE}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="inside">
+    <span class="ilbl">inside</span>
+    <span class="it">Steps · Timeline · Risks · Full scenario</span>
+  </div>
+</div>
+
+<!-- APR→MAY + CHART -->
+<div style="display:grid;grid-template-columns:1fr 1.7fr;gap:8px;margin-bottom:8px">
+  <div class="c" data-sh="trajectory" style="margin-bottom:0;padding:12px 10px;min-width:0">
+    <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px">{{DELTA1_LBL}}</div>
+    <p data-delta-narrative style="font-size:12px;line-height:1.55;color:var(--sub);flex:1">Revenue kept coming in. But costs moved faster. You ended the month with <b style="color:var(--red)">{{DELTA3_NOTE}}</b> vs last month.</p>
+    <div style="font-size:9px;color:var(--dim);margin-top:10px">Tap to see why →</div>
+  </div>
+
+  <div class="c" data-sh="trajectory" style="margin-bottom:0">
+    <div class="bc">
+      <div class="bch">{{HIST_TITULO}}</div>
+      <div class="bcs">{{HIST_SUB}}</div>
+      <svg width="100%" height="82" viewBox="0 0 400 82" preserveAspectRatio="none" data-preview-chart style="display:block">
+        <defs>
+          <linearGradient id="pfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path data-fill d="M0,41 L400,41" fill="url(#pfill)"/>
+        <path data-line d="M0,41 L400,41" fill="none" stroke="#ffffff" stroke-width="1.3" opacity="0.65" vector-effect="non-scaling-stroke"/>
+        <g data-dots></g>
+        <g data-labels></g>
+      </svg>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">6-mo trend · What you kept</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM + INDICATORS -->
+<div class="g8 g31">
+  <div class="c prob-c" data-sh="problem">
+    <div class="prob-body">
+      <div class="prob-ey">
+        <span>{{PROB1_TIPO}}</span>
+        <svg class="ic chv" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+      </div>
+      <div class="prob-n tn">{{PROB1_CHIP1_NUM}}<small> {{PROB1_CHIP1_LBL}}</small></div>
+      <div class="prob-t">{{PROB1_TITULO}}</div>
+    </div>
+    <div class="prob-flow">
+      <div class="sbar">
+        <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
+        <i style="width:{{FLOW3_PCT}};background:#302820"></i>
+        <i style="width:{{FLOW4_PCT}};background:#1e3a2e"></i>
+      </div>
+      <div class="pf-row"><span class="sw" style="background:#2a3040"></span><span class="nm">{{FLOW2_LBL}}</span><span class="am">{{FLOW2_PCT}}</span></div>
+      <div class="pf-row"><span class="sw" style="background:#302820"></span><span class="nm">{{FLOW3_LBL}}</span><span class="am">{{FLOW3_PCT}}</span></div>
+      <div class="pf-row"><span class="sw" style="background:#1e3a2e"></span><span class="nm">{{FLOW4_LBL}}</span><span class="am">{{FLOW4_PCT}}</span></div>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">Where it goes · What the numbers say</span>
+    </div>
+  </div>
+
+  <div class="c ind-c" data-sh="score">
+    <div class="ind"><span class="il">{{NAV_S1}}</span><span class="is" style="color:var(--red)">{{PROB1_CHIP2_VAL}}</span></div>
+    <div class="ind"><span class="il">{{NAV_S2}}</span><span class="is" style="color:var(--sub)">{{PROB1_CHIP3_VAL}}</span></div>
+    <div class="ind"><span class="il">{{NAV_S3}}</span><span class="is" style="color:var(--sub)">{{PROB1_CHIP2_LBL}}</span></div>
+    <div class="ind"><span class="il">{{NAV_S4}}</span><span class="is" style="color:var(--ink)">{{PROB1_CHIP3_LBL}}</span></div>
+    <div class="inside"><span class="it" style="font-size:8px">Apr → May ›</span></div>
+  </div>
+</div>
+
+
+<!-- BREAK-EVEN + SERVICES -->
+<div class="g8 g2">
+  <div class="c tile" data-sh="breakeven">
+    <div class="th">
+      <span class="tl">{{PE_TITULO}}</span>
+      <svg class="ic chv" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div class="tv tn">${{PE_MENSUAL_NUM}}</div>
+    <div class="tsub">${{PE_DIARIO_NUM}}/day · ~{{CLIENTES_DIA_PE}} clients<br>Safety: {{MARGEN_SEGURIDAD_PCT}}</div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">Your cushion · Alert · Gauge</span>
+    </div>
+  </div>
+
+  <div class="c tile" data-sh="services">
+    <div class="th">
+      <span class="tl">{{PROD_TITULO}}</span>
+      <svg class="ic chv" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px"><span style="color:var(--ink)">{{PROD1_NOMBRE}}</span><span class="badge">{{PROD1_BADGE}}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">{{PROD2_NOMBRE}}</span><span class="badge" style="color:var(--green)">{{PROD2_BADGE}}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">{{PROD3_NOMBRE}}</span><span class="badge">{{PROD3_BADGE}}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">{{PROD5_NOMBRE}}</span><span class="badge" style="color:var(--red)">{{PROD5_BADGE}}</span></div>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">5 ranked · 2 insights</span>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE -->
+<div class="close-s">
+  <div class="close-ph">{{CIERRE_FRASE}}</div>
+  <div class="close-sb">{{CIERRE_FRASE_SUB}}</div>
+  <div class="cas">
+    <div class="ca" style="border-left:2px solid var(--green)">
+      <div class="caw">{{TL1_WHEN}}</div>
+      <div class="cat">{{CIERRE_COMP1_TXT}}</div>
+    </div>
+    <div class="ca" style="border-left:2px solid var(--bd2)">
+      <div class="caw">{{TL2_WHEN}}</div>
+      <div class="cat">{{CIERRE_COMP2_TXT}}</div>
+    </div>
+    <div class="ca" style="border-left:2px solid var(--bd2)">
+      <div class="caw">{{TL3_WHEN}}</div>
+      <div class="cat">{{CIERRE_COMP3_TXT}}</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span class="foot-l">Prepared by Acly · acly.co · {{CIERRE_CONTACTO}}</span>
+  <span class="foot-r">Month {{NUM_DIAGNOSTICO}} · {{MES_DIAGNOSTICO}}</span>
+</div>
+
+</div>
+</div>
+
+<!-- ══ SHEETS ══ -->
+
+<!-- MOVE SHEET -->
+<div class="sh" id="move"><div class="si">
+  <div class="sb2"><span class="st">{{ACCION_TITULO}}</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">{{TL1_WHEN}} · <span style="color:var(--green)">+${{ACCION_IMPACTO_NUM}} {{ACCION_IMPACTO_LBL}}</span></div>
+    <p class="lead"><b>{{ACCION_HERO_TITULO}}</b> {{ACCION_HERO_DESC}} <span style="color:var(--orange)">{{ACCION_SUB}}</span></p>
+  </div>
+  <div class="blk">
+    <div class="bh">{{ACCION_COMO_TITULO}}</div>
+    <div class="step"><span class="no">1</span><span class="tx">{{ACCION_PASO1}}</span></div>
+    <div class="step"><span class="no">2</span><span class="tx">{{ACCION_PASO2}}</span></div>
+    <div class="step"><span class="no">3</span><span class="tx">{{ACCION_PASO3}}</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">{{ACCION_ESPERAR_TITULO}}</div>
+    <div class="tline"><span class="tw">{{TL1_WHEN}}</span><span class="tt">{{TL1_TXT}}</span></div>
+    <div class="tline"><span class="tw">{{TL2_WHEN}}</span><span class="tt">{{TL2_TXT}}</span></div>
+    <div class="tline"><span class="tw">{{TL3_WHEN}}</span><span class="tt">{{TL3_TXT}}</span></div>
+    <div class="tline"><span class="tw">{{TL4_WHEN}}</span><span class="tt">{{TL4_TXT}}</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">{{ACCION_RIESGOS_TITULO}}</div>
+    <div class="wt"><div class="wh">{{RIESGO1_NOMBRE}}</div><div class="wd">{{RIESGO1_TXT}}</div></div>
+    <div class="wt"><div class="wh">{{RIESGO2_NOMBRE}}</div><div class="wd">{{RIESGO2_TXT}}</div></div>
+    <div class="wt"><div class="wh">{{RIESGO3_NOMBRE}}</div><div class="wd">{{RIESGO3_TXT}}</div></div>
+  </div>
+  <div class="blk">
+    <div class="bh">Full scenario · {{VS_ERA_NOW}} vs {{VS_ERA_LATER}}</div>
+    <div class="vs-cols">
+      <div class="vs-col">
+        <div class="vs-era">{{VS_ERA_NOW}}</div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET1_LBL}}</div><div class="vs-val tn" style="color:var(--red)">{{VS_MET1_NOW_NUM}}</div><div class="vs-note">{{VS_MET1_NOW_NOTE}}</div></div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET2_LBL}}</div><div class="vs-val tn">{{VS_MET2_NOW_VAL}}</div><div class="vs-note">{{VS_MET2_NOW_NOTE}}</div></div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET3_LBL}}</div><div class="vs-val tn">{{VS_MET3_NOW_VAL}}</div><div class="vs-note">{{VS_MET3_NOW_NOTE}}</div></div>
+      </div>
+      <div class="vs-col vs-after">
+        <div class="vs-era">{{VS_ERA_LATER}}</div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET1_LBL}}</div><div class="vs-val tn">{{VS_MET1_LATER_NUM}}</div><div class="vs-note">{{VS_MET1_LATER_NOTE}}</div></div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET2_LBL}}</div><div class="vs-val tn">{{VS_MET2_LATER_VAL}}</div><div class="vs-note">{{VS_MET2_LATER_NOTE}}</div></div>
+        <div class="vs-met"><div class="vs-lbl">{{VS_MET3_LBL}}</div><div class="vs-val tn">{{VS_MET3_LATER_VAL}}</div><div class="vs-note">{{VS_MET3_LATER_NOTE}}</div></div>
+        <div class="vs-changes">
+          <div class="vs-change"><span class="vs-change-icon">✓</span>{{VS_CAMBIO1}}</div>
+          <div class="vs-change"><span class="vs-change-icon">✓</span>{{VS_CAMBIO2}}</div>
+          <div class="vs-change"><span class="vs-change-icon">✓</span>{{VS_CAMBIO3}}</div>
+        </div>
+      </div>
+    </div>
+    <div class="deltas">
+      <div class="delta"><div class="delta-lbl">{{DELTA1_LBL}}</div><div class="delta-n tn">+${{DELTA1_NUM}}</div><div class="delta-note">{{DELTA1_NOTE}}</div></div>
+      <div class="delta"><div class="delta-lbl">{{DELTA2_LBL}}</div><div class="delta-n tn">+${{DELTA2_NUM}}</div><div class="delta-note">{{DELTA2_NOTE}}</div></div>
+      <div class="delta"><div class="delta-lbl">{{DELTA3_LBL}}</div><div class="delta-n tn">+${{DELTA3_NUM}}</div><div class="delta-note">{{DELTA3_NOTE}}</div></div>
+    </div>
+  </div>
+  <div class="blk">
+    <div class="bh">{{ESC_EYEBROW}} · {{ESC_TITULO}}</div>
+    <p class="lead">{{ESC_SUB}}</p>
+    <div class="drow"><span class="dk">{{ESC_TOTAL_LBL}}</span><span class="dv tn" style="color:var(--green)">{{GANANCIA_ADICIONAL_NUM}}</span><span class="dd">{{GANANCIA_ADICIONAL_LBL}}</span></div>
+    <p class="lead" style="margin-top:10px">{{ESC_CLOSING_TXT}}</p>
+  </div>
+  <div class="blk">
+    <div class="bh">{{STK_TITULO}}</div>
+    <div class="spl">
+      <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
+      <i style="width:{{FLOW3_PCT}};background:#302820"></i>
+      <i style="width:{{FLOW4_PCT}};background:#1e2818"></i>
+    </div>
+    <div class="drow"><span class="dk">{{FLOW2_LBL}}</span><span class="dv tn">{{STK_SEG1_VAL}}</span><span class="dd">{{STK_SEG1_LBL}}</span></div>
+    <div class="drow"><span class="dk">{{FLOW3_LBL}}</span><span class="dv tn">{{STK_SEG2_VAL}}</span><span class="dd">{{STK_SEG2_LBL}}</span></div>
+    <div class="drow"><span class="dk" style="color:var(--green)">{{FLOW4_LBL}}</span><span class="dv tn" style="color:var(--green)">{{STK_SEG3_VAL}}</span><span class="dd" style="color:var(--green)">{{STK_SEG3_LBL}}</span></div>
+  </div>
+</div></div>
+
+<!-- TRAJECTORY SHEET -->
+<div class="sh" id="trajectory"><div class="si">
+  <div class="sb2"><span class="st">{{HIST_TITULO}}</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">6 months · Revenue vs Profit</div>
+    <p class="lead">{{HIST_SUB}}</p>
+    <svg viewBox="0 0 400 130" width="100%" height="130" data-sheet-chart style="margin:12px 0 8px">
+      <defs>
+        <linearGradient id="pfill2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path data-fill d="M0,65 L400,65" fill="url(#pfill2)"/>
+      <path data-line d="M0,65 L400,65" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.6" vector-effect="non-scaling-stroke"/>
+      <g data-dots></g>
+      <text data-start-label x="4" y="77" font-size="8" fill="#44403c" font-family="Satoshi,sans-serif" font-weight="700"></text>
+      <text data-end-label x="396" y="77" font-size="8" fill="#d93030" font-family="Satoshi,sans-serif" font-weight="700" text-anchor="end"></text>
+      <g data-labels></g>
+    </svg>
+  </div>
+  <div class="blk">
+    <div class="bh">The numbers side by side</div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET1_LABEL}}</span><span class="dv tn">{{MET1_NUM}}</span><span class="dd">{{DELTA2_NOTE}}</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET2_LABEL}}</span><span class="dv tn" style="color:var(--red)">{{MET2_VAL}}</span><span class="dd">{{DELTA3_NOTE}}</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET3_LABEL}}</span><span class="dv tn">{{MET3_NUM}}</span><span class="dd">{{MET3_TAG}}</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh" style="color:var(--ink);font-size:13px">Six months ago vs today</div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET1_LABEL}}</span><span class="dv tn">{{VS_MET1_NOW_NUM}}</span><span class="dd">→ {{MET1_NUM}}</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET2_LABEL}}</span><span class="dv tn">{{VS_MET1_LATER_NUM}}</span><span class="dd">→ <span style="color:var(--red)">{{MET2_VAL}}</span></span></div>
+  </div>
+  <!-- 6-MONTH HISTORIAL -->
+  <div class="blk">
+    <div class="bh">Month by month</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:14px">
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S5}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_NOW_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:100%;height:100%;background:var(--green);border-radius:2px"></div></div></div>
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S6}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA1_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:85%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S7}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA2_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:65%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S8}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA3_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:50%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S9}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_LATER_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_LATER_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:40%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
+      <div data-hm-col style="text-align:center"><div style="font-size:7.5px;color:var(--red);font-weight:700;margin-bottom:4px">{{MES_DIAGNOSTICO}}</div><div style="font-size:10px;font-weight:700;color:var(--red)">{{MET2_VAL}}</div><div style="font-size:8px;color:var(--red);margin-top:1px">{{MARGEN_SEGURIDAD_PCT}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--red-bg);margin-top:5px;overflow:hidden"><div style="width:36%;height:100%;background:var(--red);border-radius:2px"></div></div></div>
+    </div>
+    <div style="border-top:1px solid var(--bd);padding-top:12px">
+      <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">{{NAV_S0}}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px">{{HIST_ACCION_TITULO}}</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative">
+          <div style="position:absolute;left:0;top:0;height:100%;width:36%;background:linear-gradient(90deg,var(--green),var(--red));border-radius:2px"></div>
+          <div style="position:absolute;left:36%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)"></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--red);white-space:nowrap">↓ {{HIST_MET2_BADGE}}</div>
+      </div>
+      <p class="lead" style="margin-top:10px">{{HIST_ACCION_DESC}}</p>
+    </div>
+  </div>
+  <div class="blk"><div class="bh">{{HIST_EDITORIAL_MES2}}</div><p class="lead">{{HIST_EDITORIAL_MES3}}</p></div>
+</div></div>
+
+<!-- PROBLEM SHEET -->
+<div class="sh" id="problem"><div class="si">
+  <div class="sb2"><span class="st">{{RAD_TITULO}}</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">{{RAD_EYEBROW}}</div>
+    <p class="lead">{{PROB1_DESC}}</p>
+    <div class="krow2 tn">
+      <div><div class="kk">{{PROB1_CHIP1_LBL}}</div><div class="kv">{{PROB1_CHIP1_NUM}}</div></div>
+      <div><div class="kk">{{PROB1_CHIP2_LBL}}</div><div class="kv">{{PROB1_CHIP2_VAL}}</div></div>
+      <div><div class="kk">{{PROB1_CHIP3_LBL}}</div><div class="kv">{{PROB1_CHIP3_VAL}}</div></div>
+    </div>
+  </div>
+  <!-- COST STRUCTURE -->
+  <div class="blk">
+    <div class="bh">Cost structure · by area</div>
+    <div class="spl">
+      <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
+      <i style="width:{{FLOW3_PCT}};background:#302820"></i>
+      <i style="width:{{FLOW4_PCT}};background:#1e3a2e"></i>
+    </div>
+    <div class="drow"><span class="dk">{{FLOW1_LBL}}</span><span class="dv tn">{{FLOW1_MONTO}}</span><span class="dd">100%</span></div>
+    <div class="drow"><span class="dk">{{FLOW2_LBL}}</span><span class="dv tn">{{FLOW2_MONTO}}</span><span class="dd">{{FLOW2_PCT}}</span></div>
+    <div class="drow"><span class="dk">{{FLOW3_LBL}}</span><span class="dv tn">{{FLOW3_MONTO}}</span><span class="dd">{{FLOW3_PCT}}</span></div>
+    <div class="drow" style="border-top:2px solid var(--bd2)"><span class="dk" style="color:var(--ink);font-weight:700">{{FLOW4_LBL}}</span><span class="dv tn" style="color:var(--red)">{{FLOW4_MONTO}}</span><span class="dd" style="color:var(--red)">{{FLOW4_PCT}}</span></div>
+  </div>
+  <!-- PERCEPTION VS REALITY -->
+  <div class="blk vs">
+    <div class="bh">{{CORR_TITULO}}</div>
+    <div class="sv" style="padding:11px 0"><div class="stag">{{CORR_EYEBROW}}</div><div class="sq">{{PERCEPCION_CLIENTE}}</div></div>
+    <div class="sv" style="padding:11px 0;border-top:1px solid var(--bd)"><div class="stag">{{CORR_SUB}}</div><p class="lead">{{REALIDAD_NUMEROS}}</p></div>
+    <div style="padding:11px 0;border-top:1px solid var(--bd)"><p class="lead">{{REENCUADRE_TXT}}</p></div>
+  </div>
+  <div class="blk"><div class="bh">Month 2</div><p class="lead">{{HIST_EDITORIAL_MES2}}</p></div>
+  <div class="blk"><div class="bh">Month 3</div><p class="lead">{{HIST_EDITORIAL_MES3}}</p></div>
+</div></div>
+
+<!-- SCORE SHEET -->
+<div class="sh" id="score"><div class="si">
+  <div class="sb2"><span class="st">Health score · {{SCORE}}/100</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">3 components</div>
+    <div class="drow"><span class="dk">Profitability</span><span class="dv tn" style="color:var(--red)">{{PROB1_CHIP1_NUM}}</span><span class="dd" style="color:var(--red)">{{PROB1_CHIP2_VAL}}</span></div>
+    <div class="drow"><span class="dk">Structure</span><span class="dv tn" style="color:var(--sub)">{{PROB1_CHIP2_VAL}}</span><span class="dd" style="color:var(--sub)">{{PROB1_CHIP3_VAL}}</span></div>
+    <div class="drow"><span class="dk">Efficiency</span><span class="dv tn">{{MET1_TAG}}</span><span class="dd">{{MET3_TAG}}</span></div>
+    <p class="lead" style="margin-top:12px">{{RAD_SUB}}</p>
+  </div>
+  <div class="blk">
+    <div class="bh">Signal flags · {{MES_DIAGNOSTICO}}</div>
+    <div class="area"><span class="an">{{PROB1_TITULO}}</span><span class="as" style="color:var(--red)">● Active</span></div>
+    <div class="area"><span class="an">{{PROB1_DESC}}</span><span class="as" style="color:var(--red)">● Active</span></div>
+    <div class="area"><span class="an">{{MET1_LABEL}} growing</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <div class="area"><span class="an">Client retention stable</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <div class="area"><span class="an">Break-even covered</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <p class="lead" style="margin-top:12px">{{VEREDICTO_PROBLEMA}}</p>
+    <p class="lead" style="margin-top:6px">{{VEREDICTO_OPORTUNIDAD}}</p>
+  </div>
+  <div class="blk">
+    <div class="bh">{{DELTA1_LBL}}</div>
+    <div class="drow"><span class="dk">{{MET1_LABEL}}</span><span class="dv tn">{{MET1_NUM}}</span><span class="dd">{{DELTA2_NOTE}}</span></div>
+    <div class="drow"><span class="dk">{{MET3_LABEL}}</span><span class="dv tn">{{MET3_NUM}}</span><span class="dd">{{MET3_TAG}}</span></div>
+    <div class="drow"><span class="dk">{{MET2_LABEL}}</span><span class="dv tn" style="color:var(--red)">{{MET2_VAL}}</span><span class="dd">{{DELTA3_NOTE}}</span></div>
+    <div class="drow"><span class="dk">Score</span><span class="dv tn">{{SCORE}}</span><span class="dd">{{SCORE_ZONA}}</span></div>
+  </div>
+</div></div>
+
+<!-- BREAK-EVEN SHEET -->
+<div class="sh" id="breakeven"><div class="si">
+  <div class="sb2"><span class="st">{{PE_TITULO}}</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">{{PE_EYEBROW}}</div>
+    <p class="lead"><b>${{PE_MENSUAL_NUM}}</b> — {{PE_TRADUCCION}}</p>
+    <div class="krow2 tn">
+      <div><div class="kk">{{PE_MAIN_LABEL}}</div><div class="kv">${{PE_MENSUAL_NUM}}</div></div>
+      <div><div class="kk">{{PE_DIARIO_LBL}}</div><div class="kv">${{PE_DIARIO_NUM}}</div></div>
+      <div><div class="kk">{{PE_CLIENTES_LBL}}</div><div class="kv">{{CLIENTES_DIA_PE}}</div></div>
+    </div>
+  </div>
+  <div class="blk">
+    <div class="bh">{{PE_GAUGE_TITULO}}</div>
+    <div class="pe-gauge">
+      <div class="pe-gauge-track"><div class="pe-gauge-fill" style="width:{{PE_GAUGE_PCT}}%"><span style="font-size:8px;color:var(--ink);padding-left:4px">{{PE_GAUGE_LABEL}}</span></div></div>
+      <div class="pe-gauge-labels"><span>{{PE_GAUGE_VENTAS}}</span><span>{{PE_GAUGE_PE}}</span><span>{{PE_GAUGE_COLCHON}}</span></div>
+    </div>
+    <div class="drow" style="margin-top:8px"><span class="dk">{{PE_SIDE1_LABEL}}</span><span class="dv tn" style="color:var(--green)">+{{PE_SIDE1_NOTE}}</span><span class="dd">{{MARGEN_SEGURIDAD_PCT}} safety</span></div>
+    <div class="drow"><span class="dk">{{PE_SIDE2_LABEL}}</span><span class="dv tn">{{PE_SIDE2_NOTE}}</span><span class="dd">after move</span></div>
+    <div class="drow"><span class="dk">{{PE_DIAS_LBL}}</span><span class="dv tn">{{DIAS_FIJOS}}</span><span class="dd">{{PE_DIAS_SUB}}</span></div>
+    <div class="drow"><span class="dk">{{PE_DIARIO_LBL}}</span><span class="dv tn">${{PE_DIARIO_NUM}}</span><span class="dd">{{PE_DIARIO_SUB}}</span></div>
+    <div class="drow"><span class="dk">{{PE_CLIENTES_LBL}}</span><span class="dv tn">{{CLIENTES_DIA_PE}}</span><span class="dd">{{PE_CLIENTES_SUB}}</span></div>
+  </div>
+  <div class="blk" style="border-color:rgba(217,48,48,.2);background:rgba(217,48,48,.05)">
+    <div class="bh">{{ALERTA_TITULO}}</div>
+    <p class="lead" style="color:var(--red)">{{ALERTA_TXT}}</p>
+  </div>
+  <div class="blk">
+    <div class="bh">{{CIERRE_POT_LABEL}}</div>
+    <p class="lead">{{CIERRE_POT_SUB}}</p>
+    <div class="drow"><span class="dk">{{MET1_REF}}</span><span class="dv tn" style="color:var(--green)">{{VENTAS_MENSUALES_NUM}}</span><span class="dd">{{PE_SUB}}</span></div>
+  </div>
+</div></div>
+
+<!-- SERVICES SHEET -->
+<div class="sh" id="services"><div class="si">
+  <div class="sb2"><span class="st">{{PROD_TITULO}}</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">{{PROD_EYEBROW}} · {{PROD_SUB}}</div>
+    <div class="svc"><span class="rk">1</span><div class="sinfo"><div class="sn">{{PROD1_NOMBRE}}</div><div class="sb">{{PROD1_SUB}}</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:{{PROD1_PCT}}"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">{{PROD1_PCT_LBL}}</span><span class="badge">{{PROD1_BADGE}}</span></div>
+    <div class="svc"><span class="rk">2</span><div class="sinfo"><div class="sn">{{PROD2_NOMBRE}}</div><div class="sb">{{PROD2_SUB}}</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:{{PROD2_PCT}}"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">{{PROD2_PCT_LBL}}</span><span class="badge" style="color:var(--green)">{{PROD2_BADGE}}</span></div>
+    <div class="svc"><span class="rk">3</span><div class="sinfo"><div class="sn">{{PROD3_NOMBRE}}</div><div class="sb">{{PROD3_SUB}}</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:{{PROD3_PCT}}"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">{{PROD3_PCT_LBL}}</span><span class="badge">{{PROD3_BADGE}}</span></div>
+    <div class="svc"><span class="rk">4</span><div class="sinfo"><div class="sn">{{PROD4_NOMBRE}}</div><div class="sb">{{PROD4_SUB}}</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:{{PROD4_PCT}}"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">{{PROD4_PCT_LBL}}</span><span class="badge">{{PROD4_BADGE}}</span></div>
+    <div class="svc"><span class="rk">5</span><div class="sinfo"><div class="sn">{{PROD5_NOMBRE}}</div><div class="sb">{{PROD5_SUB}}</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:{{PROD5_PCT}}"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">{{PROD5_PCT_LBL}}</span><span class="badge" style="color:var(--red)">{{PROD5_BADGE}}</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">Insights</div>
+    <div class="ins"><div class="il">{{INSIGHT1_LBL}}</div><div class="it">{{INSIGHT1_TXT}}<br><em style="color:var(--dim)">{{INSIGHT1_SUB}}</em></div></div>
+    <div class="ins"><div class="il">{{INSIGHT2_LBL}}</div><div class="it">{{INSIGHT2_TXT}}<br><em style="color:var(--dim)">{{INSIGHT2_SUB}}</em></div></div>
+  </div>
+</div></div>
+
+<script>
+var PWD = '{{PWD_HASH}}';
+var pwScreen = document.getElementById('pw-screen');
+var pwInput  = document.getElementById('pw-input');
+var pwBtn    = document.getElementById('pw-btn');
+var pwErr    = document.getElementById('pw-err');
+var loader   = document.getElementById('loader');
+var main     = document.getElementById('main');
+
+async function tryUnlock(){
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(pwInput.value.toLowerCase().trim()));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === PWD){
+    pwScreen.classList.add('out');
+    setTimeout(function(){
+      pwScreen.style.display='none';
+      loader.style.display='flex';
+      setTimeout(function(){
+        loader.classList.add('out');
+        main.style.opacity='1';
+        setTimeout(function(){loader.style.display='none'},450);
+      },1200);
+    },350);
+  } else {
+    pwErr.textContent='Incorrect access code.';
+    pwInput.classList.add('err');
+    setTimeout(function(){pwInput.classList.remove('err');pwErr.textContent='';},700);
+    pwInput.value='';
+    pwInput.focus();
+  }
+}
+pwBtn.addEventListener('click', tryUnlock);
+pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
+
+var body = document.body;
+document.querySelectorAll('[data-sh]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var s = document.getElementById(el.getAttribute('data-sh'));
+    if(s){ s.classList.add('open'); body.style.overflow='hidden'; }
+  });
+});
+document.querySelectorAll('[data-close]').forEach(function(b){
+  b.addEventListener('click', function(){
+    b.closest('.sh').classList.remove('open'); body.style.overflow='';
+  });
+});
+document.querySelectorAll('.sh').forEach(function(s){
+  s.addEventListener('click', function(e){
+    if(e.target===s){ s.classList.remove('open'); body.style.overflow=''; }
+  });
+});
+</script>
+
+<script id="chart-engine">
+(function(){
+  // Read 6 profit values from historial month divs
+  var profitEls = document.querySelectorAll('[data-profit]');
+  if(profitEls.length < 2){
+
+  // ── FIRST DIAGNOSTIC: no historial ──
+  if(profitEls.length === 0){
+    // Hide preview chart, show "starting point" message
+    var smSvg = document.querySelector('svg[data-preview-chart]');
+    if(smSvg){
+      var W=400, H=82;
+      smSvg.innerHTML = '<text x="200" y="38" font-size="10" fill="#44403c" font-family="Satoshi,sans-serif" text-anchor="middle">This is your starting point.</text><text x="200" y="54" font-size="9" fill="#2a2724" font-family="Satoshi,sans-serif" text-anchor="middle">Next month you will see how it moves.</text>';
+    }
+    var bigSvg = document.querySelector('svg[data-sheet-chart]');
+    if(bigSvg){
+      bigSvg.innerHTML = '<text x="200" y="55" font-size="11" fill="#44403c" font-family="Satoshi,sans-serif" text-anchor="middle" font-weight="700">Month 1 — baseline recorded.</text><text x="200" y="74" font-size="9" fill="#2a2724" font-family="Satoshi,sans-serif" text-anchor="middle">Next diagnostic shows your first trend line.</text>';
+    }
+    return;
+  }
+
+    return;
+  }
+  var profits = Array.from(profitEls).map(function(el){ return +el.getAttribute('data-profit'); });
+  var months  = Array.from(profitEls).map(function(el){ return el.getAttribute('data-month') || ''; });
+  var n = profits.length;
+  var maxP = Math.max.apply(null,profits);
+  var minP = Math.min.apply(null,profits);
+
+  function pct(p){ return maxP===minP ? 50 : (1-(p-minP)/(maxP-minP)); }
+  function fmt(v){ return '$'+v.toLocaleString('en-US'); }
+
+  function buildPath(W,H,padT,padB){
+    var chartH = H-padT-padB;
+    var pts = profits.map(function(p,i){
+      return { x: parseFloat((W/(n-1)*i).toFixed(1)), y: parseFloat((padT+chartH*pct(p)).toFixed(1)) };
+    });
+    var line = pts.map(function(pt,i){ return (i===0?'M':'L')+pt.x+','+pt.y; }).join(' ');
+    var fill = line+' L'+pts[n-1].x+','+H+' L0,'+H+' Z';
+    return { pts:pts, line:line, fill:fill };
+  }
+
+  // dot color based on direction vs previous month
+  function dotColor(i){
+    if(i===0) return '#ffffff';
+    return profits[i] >= profits[i-1] ? '#22b86a' : '#d93030';
+  }
+
+  function buildDots(pts, scale){
+    // scale: 1=small preview, 1.3=big sheet
+    var s = scale || 1;
+    var out = '';
+    pts.forEach(function(pt,i){
+      var col = dotColor(i);
+      var r1=+(4.5*s).toFixed(1), r2=+(2.8*s).toFixed(1), r3=+(1.4*s).toFixed(1);
+      out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r1+'" fill="'+col+'" opacity="0.15"/>';
+      out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r2+'" fill="#0e0d0c" stroke="'+col+'" stroke-width="1.2"/>';
+      out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r3+'" fill="'+col+'"/>';
+    });
+    return out;
+  }
+
+  function buildMonthLabels(W,H,letterY,fz){
+    var out = '';
+    var letters = months.map(function(m){ return m.charAt(0).toUpperCase(); });
+    profits.forEach(function(_,i){
+      var lx = W/(n-1)*i;
+      var col = dotColor(i);
+      var anchor = i===0?'start':(i===n-1?'end':'middle');
+      var lxAdj = i===0?2:(i===n-1?W-2:lx);
+      var fw = i===n-1?' font-weight="700"':'';
+      out += '<text x="'+lxAdj+'" y="'+letterY+'" font-size="'+fz+'" fill="'+col+'" font-family="Satoshi,sans-serif" text-anchor="'+anchor+'"'+fw+'>'+letters[i]+'</text>';
+    });
+    return out;
+  }
+
+  // ── 1. SMALL PREVIEW SVG ──
+  var smSvg = document.querySelector('svg[data-preview-chart]');
+  if(smSvg){
+    var W=400,H=82,padT=10,padB=16;
+    var ch = buildPath(W,H,padT,padB);
+    var fillEl = smSvg.querySelector('[data-fill]');
+    var lineEl = smSvg.querySelector('[data-line]');
+    var dotsEl = smSvg.querySelector('[data-dots]');
+    var labelsEl = smSvg.querySelector('[data-labels]');
+    if(fillEl) fillEl.setAttribute('d', ch.fill);
+    if(lineEl) lineEl.setAttribute('d', ch.line);
+    if(dotsEl) dotsEl.innerHTML = buildDots(ch.pts, 1);
+    if(labelsEl) labelsEl.innerHTML = buildMonthLabels(W,H,H-1,7);
+  }
+
+  // ── 2. BIG SHEET SVG ──
+  var bigSvg = document.querySelector('svg[data-sheet-chart]');
+  if(bigSvg){
+    var W=400,H=130,padT=16,padB=20;
+    var ch = buildPath(W,H,padT,padB);
+    var fillEl = bigSvg.querySelector('[data-fill]');
+    var lineEl = bigSvg.querySelector('[data-line]');
+    var dotsEl = bigSvg.querySelector('[data-dots]');
+    var labelsEl = bigSvg.querySelector('[data-labels]');
+    var startLbl = bigSvg.querySelector('[data-start-label]');
+    var endLbl   = bigSvg.querySelector('[data-end-label]');
+    if(fillEl) fillEl.setAttribute('d', ch.fill);
+    if(lineEl) lineEl.setAttribute('d', ch.line);
+    if(dotsEl) dotsEl.innerHTML = buildDots(ch.pts, 1.2);
+    if(labelsEl) labelsEl.innerHTML = buildMonthLabels(W,H,H-2,7.5);
+    if(startLbl){
+      startLbl.textContent = fmt(profits[0]);
+      startLbl.setAttribute('y', Math.min(ch.pts[0].y+12, H-22)+'');
+    }
+    if(endLbl){
+      endLbl.textContent = fmt(profits[n-1]);
+      endLbl.setAttribute('y', Math.min(ch.pts[n-1].y+12, H-22)+'');
+    }
+  }
+
+  // ── 3. HISTORIAL BARS: recalculate widths proportional to maxP ──
+  var hmonths = document.querySelectorAll('[data-profit]');
+  hmonths.forEach(function(el,i){
+    var p = profits[i];
+    var barFill = el.closest('[data-hm-col]') ? el.closest('[data-hm-col]').querySelector('.hm-fill') : null;
+    if(barFill) barFill.style.width = (p/maxP*100).toFixed(0)+'%';
+    // color
+    var col = dotColor(i);
+    if(barFill) barFill.style.background = col;
+    var valEl = el.closest('[data-hm-col]') ? el.closest('[data-hm-col]').querySelector('.hm-val') : null;
+    if(valEl){ valEl.textContent = fmt(p); valEl.style.color = col; }
+    var lblEl = el.closest('[data-hm-col]') ? el.closest('[data-hm-col]').querySelector('.hm-lbl') : null;
+    if(lblEl) lblEl.style.color = col;
+  });
+
+  // ── 4. BRUJULA: position dot based on profit trend ──
+  var brujulaTrack = document.querySelector('.brujula-track');
+  if(brujulaTrack){
+    var peakIdx = profits.reduce(function(b,p,i){ return p>profits[b]?i:b; },0);
+    var lastP = profits[n-1];
+    var firstP = profits[0];
+    // position: 0%=growing, 100%=declining badly
+    var progress;
+    if(lastP >= maxP){ progress = 10; }
+    else {
+      var drop = maxP - lastP;
+      var range = maxP - minP;
+      progress = range>0 ? Math.round(drop/range*85)+10 : 50;
+    }
+    progress = Math.max(5, Math.min(92, progress));
+    var dot = brujulaTrack.querySelector('.brujula-dot');
+    if(dot) dot.style.left = progress+'%';
+    var state = brujulaTrack.querySelector('.brujula-state');
+    var isFalling = lastP < profits[n>1?n-2:0];
+    var isGrowing = lastP >= maxP;
+    if(dot){
+      dot.style.background = isGrowing ? 'var(--green)' : (progress>55 ? 'var(--red)' : 'var(--sub)');
+    }
+    if(state){
+      if(isGrowing){ state.style.color='var(--green)'; state.textContent='↑ Growing'; }
+      else if(!isFalling){ state.style.color='var(--sub)'; state.textContent='→ Stabilizing'; }
+      else { state.style.color='var(--red)'; state.textContent='↓ Declining'; }
+    }
+  }
+
+  // ── 5. APR→MAY CARD: update narrative dynamically ──
+  var narrativeEl = document.querySelector('[data-delta-narrative]');
+  if(narrativeEl && n >= 2){
+    var cur = profits[n-1];
+    var prev = profits[n-2];
+    var diff = Math.abs(cur - prev);
+    var dir = cur >= prev ? 'up' : 'down';
+    var col = cur >= prev ? 'var(--green)' : 'var(--red)';
+    var sign = cur >= prev ? '+' : '−';
+    narrativeEl.innerHTML = 'Revenue ' + (cur>=prev?'continued growing.':'kept coming in.') +
+      ' But costs moved faster. You ended the month with <b style="color:'+col+'">'+sign+'$'+diff.toLocaleString('en-US')+'</b> vs last month.';
+  }
+
+})();
+</script>
+
+</body>
+</html>
