@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Diagnostic · <span style="filter:blur(5px);user-select:none;opacity:0.45">Meridian Consulting Group</span></title>
+<!-- External font removed: caused a late font-swap reflow that froze the page on slow mobile connections. System font stack is instant and has no network dependency. -->
+<style>
+:root{
+  --bg:#090807;--bd:#1e1c1a;--bd2:#2a2724;
+  --ink:#edeae4;--sub:#b8b2aa;--dim:#6a6460;
+  --red:#d93030;--red-bg:rgba(217,48,48,.08);
+  --green:#22b86a;--green-bg:rgba(34,184,106,.09);
+  --orange:#f07020;--orange-bg:rgba(240,112,32,.09);
+  --card:#131210;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  line-height:1.4;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;justify-content:center}
+.tn{font-variant-numeric:tabular-nums}
+svg.ic{display:block;flex:none}
+
+/* ── PASSWORD ── */
+#pw-screen{position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px}
+#pw-screen.out{opacity:0;pointer-events:none;transition:opacity .35s ease}
+.pw-brand{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.3px;margin-bottom:4px}
+.pw-brand em{display:none}
+.pw-label{font-size:10px;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:28px}
+.pw-field{width:100%;max-width:280px;background:var(--card);border:1px solid var(--bd2);
+  border-radius:8px;padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  font-family:inherit;outline:none;text-align:center;letter-spacing:.5px;
+  -webkit-text-security:disc}
+.pw-field:focus{border-color:var(--dim)}
+.pw-field.err{border-color:var(--red);animation:shake .3s ease}
+.pw-btn{margin-top:12px;width:100%;max-width:280px;background:var(--ink);color:var(--bg);
+  border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:700;
+  font-family:inherit;cursor:pointer}
+.pw-btn:active{opacity:.85}
+.pw-err{font-size:11px;color:var(--red);margin-top:10px;height:16px;text-align:center}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;z-index:200;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:opacity .4s ease}
+#loader.out{opacity:0;pointer-events:none}
+.ld-brand{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.ld-brand em{display:none}
+.ld-sub{font-size:10px;color:var(--dim);letter-spacing:.3px}
+.ld-bar{width:48px;height:2px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:4px}
+.ld-fill{height:100%;background:var(--sub);border-radius:2px;width:0;
+  animation:ldfill 1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ldfill{0%{width:0}60%{width:70%}100%{width:100%}}
+
+/* ── CANVAS ── */
+.phone{width:100%;max-width:440px;min-height:100vh;background:var(--bg);
+  padding:0 0 calc(40px + env(safe-area-inset-bottom));opacity:0;transition:opacity .3s ease .1s}
+
+/* ── HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:16px 16px 14px;border-bottom:1px solid var(--bd)}
+.brand{font-weight:700;font-size:12.5px;color:var(--ink)}
+.brand small{display:block;font-weight:500;font-size:8.5px;color:var(--dim);margin-top:.5px}
+.hdr-r{text-align:right}
+.hdr-case{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.hdr-biz{font-size:11px;font-weight:600;color:var(--sub);margin-top:2px}
+
+.body{padding:0 16px}
+
+/* ── VERDICT ── */
+.vd{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--bd)}
+.vd-status{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.vd-status::before{content:'';width:4px;height:4px;border-radius:50%;background:#fff;flex:none}
+.vd h1{font-size:22px;font-weight:700;letter-spacing:-.6px;line-height:1.2;color:var(--ink)}
+.vd h1 .hl{color:var(--red);font-size:28px;letter-spacing:-.9px}
+.score-row{display:flex;align-items:baseline;gap:6px;margin-top:16px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  padding-top:14px;border-top:1px solid var(--bd)}
+.score-n{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--ink)}
+.score-denom{font-size:11px;color:var(--dim);font-weight:500}
+.score-lbl{font-size:11px;color:var(--sub);margin-left:2px}
+.score-go{margin-left:auto;font-size:10px;color:var(--dim)}
+.krow{display:flex;gap:6px;margin-top:12px}
+.kc{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:9px 10px}
+.kc .kk{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);font-weight:700}
+.kc .kv{font-size:14px;font-weight:700;margin-top:3px;letter-spacing:-.3px;color:var(--ink)}
+.kc .kt{font-size:9px;font-weight:700;margin-top:3px;color:var(--sub)}
+
+/* ── CARD ── */
+.c{background:var(--card);border:1px solid var(--bd);border-radius:8px;
+  position:relative;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  display:block;width:100%;text-align:left;color:inherit;font-family:inherit;margin-bottom:8px}
+.c:active{opacity:.82}
+.inside{border-top:1px solid var(--bd);padding:6px 13px;display:flex;align-items:center;flex-wrap:wrap}
+.inside .ilbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-right:7px}
+.inside .it{font-size:9px;color:var(--dim)}
+
+/* ── THE MOVE ── */
+.move-c{border-left:2px solid var(--green)}
+.move-body{padding:14px 13px 0}
+.move-ey{font-size:8.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.move-big{font-size:36px;font-weight:700;letter-spacing:-1.6px;color:var(--green);line-height:1}
+.move-big small{font-size:13px;opacity:.6;font-weight:600}
+.move-ti{font-size:13.5px;font-weight:700;letter-spacing:-.3px;margin-top:7px;line-height:1.2;color:var(--ink)}
+.move-de{font-size:11.5px;color:var(--sub);margin-top:5px;line-height:1.5}
+.scen-mini{display:flex;margin:12px 0 13px;border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.sm-col{flex:1;padding:9px 10px}
+.sm-col+.sm-col{border-left:1px solid var(--bd)}
+.sm-col .ek{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:4px}
+.sm-col .ev{font-size:13px;font-weight:700;color:var(--ink)}
+.sm-col .ek2{font-size:9px;color:var(--sub);margin-top:2px}
+.sm-col .ev2{font-size:13px;font-weight:700;color:var(--green)}
+
+/* ── CHART ── */
+.bc{padding:13px 13px 0}
+.bc .bch{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.bc .bcs{font-size:10px;color:var(--sub);margin-bottom:10px}
+
+/* ── PROBLEM ── */
+.g8{display:grid;gap:8px;margin-bottom:8px}
+.g31{grid-template-columns:3fr 1.1fr}
+.g2{grid-template-columns:1fr 1fr}
+.prob-c{border-left:2px solid var(--bd2);margin-bottom:0}
+.prob-body{padding:13px 12px 0}
+.prob-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.prob-n{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--ink);line-height:1}
+.prob-n small{font-size:11px;color:var(--dim);font-weight:600}
+.prob-t{font-size:12px;font-weight:700;margin-top:4px;line-height:1.3;color:var(--ink)}
+.prob-flow{padding:0 10px 12px;margin-top:10px}
+.sbar{display:flex;height:3px;border-radius:2px;overflow:hidden;gap:2px;margin-bottom:8px}
+.sbar i{display:block}
+.pf-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10.5px}
+.pf-row .sw{width:5px;height:5px;border-radius:1px;flex:none}
+.pf-row .nm{flex:1;color:var(--sub)}
+.pf-row .am{font-weight:700;color:var(--ink)}
+
+/* ── INDICATORS ── */
+.ind-c{display:flex;flex-direction:column;padding:11px 10px 0;margin-bottom:0}
+.ind{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.ind+.ind{border-top:1px solid var(--bd)}
+.ind .il{font-size:9.5px;font-weight:600;color:var(--ink)}
+.ind .is{font-size:8.5px;font-weight:700;color:var(--sub)}
+
+/* ── TILES ── */
+.tile{padding:13px 12px;margin-bottom:0;display:flex;flex-direction:column}
+.tile .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tile .tl{font-size:11px;color:var(--sub);font-weight:600}
+.tile .tv{font-size:20px;font-weight:700;letter-spacing:-.7px;line-height:1;color:var(--ink)}
+.tile .tsub{font-size:10px;color:var(--dim);margin-top:5px;line-height:1.4;flex:1}
+
+/* ── HISTORIAL CARD ── */
+.hist-card{padding:13px 12px 0}
+.hist-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--sub);margin-bottom:5px}
+.hist-ti{font-size:13px;font-weight:700;letter-spacing:-.3px;color:var(--ink);margin-bottom:3px}
+.hist-sub{font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.4}
+.hist-months{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px}
+.hm{text-align:center}
+.hm-lbl{font-size:7.5px;color:var(--dim);margin-bottom:4px}
+.hm-val{font-size:10px;font-weight:700;color:var(--ink)}
+.hm-pct{font-size:8px;color:var(--sub);margin-top:1px}
+.hm-bar{width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden}
+.hm-fill{height:100%;border-radius:2px;background:var(--sub)}
+.hm.active .hm-lbl{color:var(--red);font-weight:700}
+.hm.active .hm-val{color:var(--red)}
+.hm.active .hm-pct{color:var(--red)}
+.hm.active .hm-fill{background:var(--red)}
+.brujula{border-top:1px solid var(--bd);padding:12px 0 13px}
+.brujula-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.brujula-track{display:flex;align-items:center;gap:10px}
+.brujula-bar{flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative}
+.brujula-fill{position:absolute;left:0;top:0;height:100%;border-radius:2px}
+.brujula-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.brujula-state{font-size:10px;font-weight:700;white-space:nowrap}
+.hist-next{margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--bd)}
+.hist-next-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.hist-next-msg{font-size:12px;color:var(--sub);line-height:1.5}
+
+/* ── CLOSE ── */
+.close-s{padding:10px 0 8px;margin-top:6px}
+.close-ph{font-size:16px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;color:var(--ink)}
+.close-sb{font-size:11px;color:var(--sub);margin-bottom:12px}
+.cas{display:flex;flex-direction:column;gap:7px}
+.ca{padding:12px 13px;border-radius:7px;background:var(--card);border:1px solid var(--bd);border-left:2px solid var(--bd2)}
+.ca.week{border-left:2px solid var(--green)}
+.ca.month{border-left:2px solid var(--sub)}
+.ca .caw{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
+.ca .cat{font-size:12.5px;line-height:1.6;color:var(--ink)}.ca .cat b{color:var(--ink);font-weight:700}
+
+/* ── FOOTER ── */
+.foot{margin-top:22px;padding-top:14px;border-top:1px solid var(--bd);
+  display:flex;justify-content:space-between;align-items:center}
+.foot-l{font-size:9px;color:var(--dim)}
+.foot-r{font-size:9px;color:var(--dim)}
+.chv{color:var(--dim)}
+
+/* ── SHEETS ── */
+.sh{position:fixed;inset:0;z-index:100;background:var(--bg);
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);
+  overflow-y:auto;display:flex;justify-content:center}
+.sh.open{transform:translateY(0)}
+.si{width:100%;max-width:440px;padding:0 16px calc(48px + env(safe-area-inset-bottom))}
+.sb2{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0 12px;background:var(--bg);border-bottom:1px solid var(--bd);
+  margin-bottom:14px;z-index:2}
+.sb2 .st{font-size:13px;font-weight:700;color:var(--ink)}
+.sclose{width:28px;height:28px;border-radius:50%;border:none;background:transparent;
+  color:var(--sub);font-size:16px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sclose:active{color:var(--ink)}
+.blk{border:1px solid var(--bd);border-radius:7px;padding:16px 14px;background:var(--card);margin-bottom:12px}
+.bh{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;font-weight:700}
+.lead{font-size:13px;line-height:1.58;color:var(--sub)}.lead b{color:var(--ink);font-weight:600}
+.lead .bad{color:var(--red)}.lead .good{color:var(--green)}
+.krow2{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.krow2 .kk{font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--dim)}
+.krow2 .kv{font-size:17px;font-weight:700;margin-top:2px;color:var(--ink)}
+.drow{display:flex;align-items:center;justify-content:space-between;padding:11px 0}
+.drow+.drow{border-top:1px solid var(--bd)}
+.drow .dk{font-size:12px;color:var(--sub)}.drow .dv{font-size:14px;font-weight:700;color:var(--ink)}
+.drow .dd{font-size:10px;font-weight:600;text-align:right;min-width:78px;color:var(--sub)}
+.step{display:flex;gap:10px;padding:11px 0}.step+.step{border-top:1px solid var(--bd)}
+.step .no{width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.08);
+  color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.step .tx{font-size:12px;line-height:1.5;color:var(--sub)}.step .tx b{color:var(--ink)}
+.tline{display:flex;gap:10px;padding:10px 0}.tline+.tline{border-top:1px solid var(--bd)}
+.tline .tw{font-size:9px;font-weight:700;color:var(--sub);width:58px;flex:none;padding-top:1px}
+.tline .tt{font-size:12px;line-height:1.45;color:var(--ink)}
+.wt{padding:11px 0}.wt+.wt{border-top:1px solid var(--bd)}
+.wt .wh{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--ink)}
+.wt .wd{font-size:11.5px;color:var(--sub);line-height:1.5}
+.svc{display:flex;align-items:center;gap:10px;padding:11px 0}.svc+.svc{border-top:1px solid var(--bd)}
+.svc .rk{width:16px;font-size:11px;font-weight:700;color:var(--dim)}
+.svc .sinfo{flex:1}
+.svc .sinfo .sn{font-size:12.5px;font-weight:600;color:var(--ink)}
+.svc .sinfo .sb{font-size:10px;color:var(--dim);margin-top:1px}
+.svc .svc-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;margin:0 8px;overflow:hidden}
+.svc .svc-bar-fill{height:100%;border-radius:2px;background:var(--sub)}
+.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;
+  color:var(--sub);background:rgba(255,255,255,.05)}
+.ins{padding:11px 0}.ins+.ins{border-top:1px solid var(--bd)}
+.ins .il{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ins .it{font-size:12px;color:var(--sub);line-height:1.5}
+.area{display:flex;align-items:center;gap:10px;padding:9px 0}.area+.area{border-top:1px solid var(--bd)}
+.area .an{flex:1;font-size:12.5px;color:var(--ink)}
+.area .as{font-size:10px;font-weight:700;color:var(--sub)}
+.spl{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:2px;margin:3px 0 12px}.spl i{display:block}
+.vs .sv{padding:11px 0}.vs .sv+.sv{border-top:1px solid var(--bd)}
+.vs .stag{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.vs .sq{font-size:12.5px;font-style:italic;color:var(--sub);line-height:1.5}
+/* PE gauge */
+.pe-gauge{margin-top:14px}
+.pe-gauge-title{font-size:9px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.pe-gauge-track{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.pe-gauge-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--orange))}
+.pe-gauge-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim)}
+/* VS comparison */
+.vs-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.vs-col{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:6px;padding:12px 10px}
+.vs-col.vs-after{border-color:rgba(34,184,106,.2);background:rgba(34,184,106,.04)}
+.vs-era{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.vs-after .vs-era{color:var(--green)}
+.vs-met{margin-bottom:8px}
+.vs-lbl{font-size:9px;color:var(--dim);margin-bottom:2px}
+.vs-val{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.4px}
+.vs-after .vs-val{color:var(--green)}
+.vs-note{font-size:9.5px;color:var(--sub);margin-top:1px}
+.vs-changes{margin-top:10px;border-top:1px solid var(--bd);padding-top:10px;display:flex;flex-direction:column;gap:5px}
+.vs-change{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--sub)}
+.vs-change-icon{color:var(--green);font-size:10px;margin-top:1px;flex:none}
+/* Deltas row */
+.deltas{display:flex;gap:8px;margin-top:12px}
+.delta{flex:1;text-align:center;background:rgba(34,184,106,.06);border:1px solid rgba(34,184,106,.15);border-radius:6px;padding:10px 6px}
+.delta-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.delta-n{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-.4px}
+.delta-note{font-size:9px;color:var(--sub);margin-top:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="pw-screen">
+  <div class="pw-brand">Acly</div>
+  <div class="pw-label">Financial Diagnostic</div>
+  <input class="pw-field" id="pw-input" type="password" placeholder="Enter access code" autocomplete="off" autocorrect="off" spellcheck="false">
+  <button class="pw-btn" id="pw-btn">Open diagnostic</button>
+  <div class="pw-err" id="pw-err"></div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" style="display:none">
+  <div class="ld-brand">Acly</div>
+  <div class="ld-sub">Loading <span style="filter:blur(4px);opacity:0.4">Meridian Consulting Group</span></div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="phone" id="main">
+
+<div class="hdr">
+  <div class="brand">Acly<small>Financial Diagnostic</small></div>
+  <div class="hdr-r">
+    <div class="hdr-case">Month 6 · May 2026</div>
+    <div class="hdr-biz"><span style="filter:blur(5px);user-select:none;opacity:0.45">Meridian Consulting Group</span></div>
+  </div>
+</div>
+
+<div class="body">
+
+<!-- VERDICT -->
+<div class="vd">
+  <div class="vd-status">Attention · May 2026</div>
+  <h1>You bring in $22,400.<br><span class="hl">You keep $1,120.</span></h1>
+
+  <div class="score-row" data-sh="score">
+    <span class="score-n tn">46</span>
+    <span class="score-denom"> /100</span>
+    <span class="score-lbl">Business health</span>
+    <span class="score-go">5 areas ›</span>
+  </div>
+
+  <div class="krow">
+    <div class="kc">
+      <div class="kk">What came in</div>
+      <div class="kv tn">$22,400</div>
+      <div class="kt">↑ +6%</div>
+    </div>
+    <div class="kc">
+      <div class="kk">What you kept</div>
+      <div class="kv tn" style="color:var(--red)">$1,120</div>
+      <div class="kt">↓ −38%</div>
+    </div>
+    <div class="kc">
+      <div class="kk">Of every $1</div>
+      <div class="kv tn">5.0%</div>
+      <div class="kt">↓ −3 pts</div>
+    </div>
+  </div>
+</div>
+
+<!-- THE MOVE -->
+<div class="c move-c" data-sh="move">
+  <div class="move-body">
+    <div class="move-ey">
+      <span>What you can do · This week</span>
+      <svg class="ic chv" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div class="move-big tn">+$1,340<small> /mo</small></div>
+    <div class="move-ti">Raise your service rate by $6.</div>
+    <div class="move-de">Your rate hasn't moved in 14 months. Costs have.</div>
+    <div class="scen-mini">
+      <div class="sm-col">
+        <div class="ek">Today</div>
+        <div class="ev tn">$1,120</div>
+        <div class="ek2">what you keep · now</div>
+      </div>
+      <div class="sm-col">
+        <div class="ek">With the change</div>
+        <div class="ev2 tn">$2,460</div>
+        <div class="ek2">+$1,340/mo</div>
+      </div>
+    </div>
+  </div>
+  <div class="inside">
+    <span class="ilbl">inside</span>
+    <span class="it">Steps · When · Risks · Full scenario</span>
+  </div>
+</div>
+
+<!-- APR→MAY + CHART -->
+<div style="display:grid;grid-template-columns:1fr 1.7fr;gap:8px;margin-bottom:8px">
+  <div class="c" data-sh="trajectory" style="margin-bottom:0;padding:12px 10px;min-width:0">
+    <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Apr → May</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:8px;color:var(--dim);margin-bottom:3px">Revenue</div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.4px">+$1,260</div>
+      </div>
+      <div style="border-top:1px solid var(--bd);padding-top:10px">
+        <div style="font-size:8px;color:var(--dim);margin-bottom:3px">What you kept</div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.4px">−$180</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="c" data-sh="trajectory" style="margin-bottom:0">
+    <div class="bc">
+      <div class="bch">More revenue, less profit.</div>
+      <div class="bcs">Every month busier. Every month less to show for it.</div>
+      <svg width="100%" height="82" viewBox="0 0 400 82" preserveAspectRatio="none" data-chart-id="main-chart" style="display:block">
+        <defs>
+          <linearGradient id="pfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0.0,66.0 L80.0,43.2 L160.0,25.6 L240.0,10.0 L320.0,20.4 L400.0,32.1 L400.0,82 L0,82 Z" fill="url(#pfill)"/>
+        <path d="M0.0,66.0 L80.0,43.2 L160.0,25.6 L240.0,10.0 L320.0,20.4 L400.0,32.1" fill="none" stroke="#ffffff" stroke-width="1.3" opacity="0.65" vector-effect="non-scaling-stroke"/>
+        <circle cx="0.0" cy="66.0" r="4.5" fill="#ffffff" opacity="0.15"/><circle cx="0.0" cy="66.0" r="2.8" fill="#0e0d0c" stroke="#ffffff" stroke-width="1.2"/><circle cx="0.0" cy="66.0" r="1.4" fill="#ffffff"/><circle cx="80.0" cy="43.2" r="4.5" fill="#22b86a" opacity="0.15"/><circle cx="80.0" cy="43.2" r="2.8" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.2"/><circle cx="80.0" cy="43.2" r="1.4" fill="#22b86a"/><circle cx="160.0" cy="25.6" r="4.5" fill="#22b86a" opacity="0.15"/><circle cx="160.0" cy="25.6" r="2.8" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.2"/><circle cx="160.0" cy="25.6" r="1.4" fill="#22b86a"/><circle cx="240.0" cy="10.0" r="4.5" fill="#22b86a" opacity="0.15"/><circle cx="240.0" cy="10.0" r="2.8" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.2"/><circle cx="240.0" cy="10.0" r="1.4" fill="#22b86a"/><circle cx="320.0" cy="20.4" r="4.5" fill="#d93030" opacity="0.15"/><circle cx="320.0" cy="20.4" r="2.8" fill="#0e0d0c" stroke="#d93030" stroke-width="1.2"/><circle cx="320.0" cy="20.4" r="1.4" fill="#d93030"/><circle cx="400.0" cy="32.1" r="4.5" fill="#d93030" opacity="0.15"/><circle cx="400.0" cy="32.1" r="2.8" fill="#0e0d0c" stroke="#d93030" stroke-width="1.2"/><circle cx="400.0" cy="32.1" r="1.4" fill="#d93030"/>
+        <text x="2" y="81" font-size="7" fill="#6a6460" font-family="Satoshi,sans-serif" text-anchor="start">N</text><text x="80.0" y="81" font-size="7" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">D</text><text x="160.0" y="81" font-size="7" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">J</text><text x="240.0" y="81" font-size="7" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">F</text><text x="320.0" y="81" font-size="7" fill="#d93030" font-family="Satoshi,sans-serif" text-anchor="middle">M</text><text x="398" y="81" font-size="7" fill="#d93030" font-family="Satoshi,sans-serif" text-anchor="end" font-weight="700">A</text>
+      </svg>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">6 months · Revenue vs what you kept</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM + INDICATORS -->
+<div class="g8 g31">
+  <div class="c prob-c" data-sh="problem">
+    <div class="prob-body">
+      <div class="prob-ey">
+        <span>Problem</span>
+        <svg class="ic chv" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+      </div>
+      <div class="prob-n tn">41%<small> Fixed ratio</small></div>
+      <div class="prob-t">Fixed costs +16%. Rate frozen.</div>
+    </div>
+    <div class="prob-flow">
+      <div class="sbar">
+        <i style="width:54%;background:#2a3040"></i>
+        <i style="width:41%;background:#302820"></i>
+        <i style="width:5%;background:#2a2724"></i>
+      </div>
+      <div class="pf-row"><span class="sw" style="background:#2a3040"></span><span class="nm">Staff & providers</span><span class="am">54%</span></div>
+      <div class="pf-row"><span class="sw" style="background:#302820"></span><span class="nm">Rent & fixed</span><span class="am">41%</span></div>
+      <div class="pf-row"><span class="sw" style="background:#1e3a2e"></span><span class="nm">Yours</span><span class="am">5%</span></div>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">Cost structure · Said vs numbers</span>
+    </div>
+  </div>
+
+  <div class="c ind-c" data-sh="score">
+    <div class="ind"><span class="il">Profit</span><span class="is" style="color:var(--red)">Critical</span></div>
+    <div class="ind"><span class="il">Expenses</span><span class="is" style="color:var(--orange)">Unstable</span></div>
+    <div class="ind"><span class="il">Revenue</span><span class="is" style="color:var(--sub)">Cost growth</span></div>
+    <div class="ind"><span class="il">Clients</span><span class="is" style="color:var(--ink)">Trend</span></div>
+    <div class="inside"><span class="it" style="font-size:8px">Detail ›</span></div>
+  </div>
+</div>
+
+<!-- BREAK-EVEN + SERVICES -->
+<div class="g8 g2">
+  <div class="c tile" data-sh="breakeven">
+    <div class="th">
+      <span class="tl">Break-even</span>
+      <svg class="ic chv" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div class="tv tn">$21,280</div>
+    <div class="tsub">$709/day · ~~8 clients<br>Safety: 5.0%</div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">Cushion · Alert · Gauge</span>
+    </div>
+  </div>
+
+  <div class="c tile" data-sh="services">
+    <div class="th">
+      <span class="tl">Services</span>
+      <svg class="ic chv" width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H6M12 4v6"/></svg>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px"><span style="color:var(--ink)">Core service</span><span class="badge">Best</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">Premium service</span><span class="badge" style="color:var(--green)">OK</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">Add-on A</span><span class="badge">Low</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">Entry service</span><span class="badge" style="color:var(--red)">Losing</span></div>
+    </div>
+    <div class="inside">
+      <span class="ilbl">inside</span>
+      <span class="it">5 ranked · 2 insights</span>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE -->
+<div class="close-s">
+  <div class="close-ph">What's next.</div>
+  <div class="close-sb">One rate adjustment, measured for 30 days.</div>
+  <div class="cas">
+    <div class="ca week">
+      <div class="caw">This week</div>
+      <div class="cat"><b>Update your price list and booking system</b> today.</div>
+    </div>
+    <div class="ca">
+      <div class="caw">Week 2</div>
+      <div class="cat">Brief your team — one price, same day, no exceptions.</div>
+    </div>
+    <div class="ca">
+      <div class="caw">Week 3–4</div>
+      <div class="cat"><b>Measure net profit at month end.</b> Compare to the $1,120 baseline. Send us the number.</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span class="foot-l">Prepared by Acly · acly.co · acly.hq@gmail.com</span>
+  <span class="foot-r">Month 6 · May 2026</span>
+</div>
+
+</div>
+</div>
+
+<!-- ══ SHEETS ══ -->
+
+<!-- MOVE SHEET -->
+<div class="sh" id="move"><div class="si">
+  <div class="sb2"><span class="st">What you can do</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">This week · <span style="color:var(--green)">+$1,340 /mo</span></div>
+    <p class="lead"><b>Raise your service rate by $6.</b> Your rate hasn't moved in 14 months. Costs have. <span style="color:var(--orange)">$6 more on 224 transactions/mo is $1,344 back — no new clients needed.</span></p>
+  </div>
+  <div class="blk">
+    <div class="bh">How to do it</div>
+    <div class="step"><span class="no">1</span><span class="tx"><b>Update your price list and booking system</b> today. Same price across every service, every provider.</span></div>
+    <div class="step"><span class="no">2</span><span class="tx"><b>Brief your team</b> so everyone quotes the same number. No exceptions.</span></div>
+    <div class="step"><span class="no">3</span><span class="tx">At month end, count transactions. Compare profit to the $1,120 baseline. Send us the number.</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">When</div>
+    <div class="tline"><span class="tw">This week</span><span class="tt">Update price list and booking system.</span></div>
+    <div class="tline"><span class="tw">Week 2</span><span class="tt">Brief every provider — one price, same day.</span></div>
+    <div class="tline"><span class="tw">Week 3–4</span><span class="tt">Monitor. Pushback on $6 is rare for loyal clients.</span></div>
+    <div class="tline"><span class="tw">Month end</span><span class="tt">Measure net profit vs $1,120 baseline. Send the number.</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">What to watch</div>
+    <div class="wt"><div class="wh">Fear of losing clients</div><div class="wd">Nobody leaves over $6 on a service they already value.</div></div>
+    <div class="wt"><div class="wh">Inconsistent pricing</div><div class="wd"><span style="color:var(--orange)">One provider charges the old rate and you lose the entire gain.</span></div></div>
+    <div class="wt"><div class="wh">Stopping at one fix</div><div class="wd">This recovers $1,340 — margin is still thin. Month one, not the finish line.</div></div>
+  </div>
+  <div class="blk">
+    <div class="bh">Full scenario · Now vs After</div>
+    <div class="vs-cols">
+      <div class="vs-col">
+        <div class="vs-era">Now</div>
+        <div class="vs-met"><div class="vs-lbl">Net profit</div><div class="vs-val tn" style="color:var(--red)">$1,120</div><div class="vs-note">6 months ago</div></div>
+        <div class="vs-met"><div class="vs-lbl">Margin</div><div class="vs-val tn">5.0%</div><div class="vs-note">current</div></div>
+        <div class="vs-met"><div class="vs-lbl">Fixed cost ratio</div><div class="vs-val tn">41%</div><div class="vs-note">too high</div></div>
+      </div>
+      <div class="vs-col vs-after">
+        <div class="vs-era">After</div>
+        <div class="vs-met"><div class="vs-lbl">Net profit</div><div class="vs-val tn">$2,460</div><div class="vs-note">+$1,340/mo</div></div>
+        <div class="vs-met"><div class="vs-lbl">Margin</div><div class="vs-val tn">11.0%</div><div class="vs-note">after move</div></div>
+        <div class="vs-met"><div class="vs-lbl">Fixed cost ratio</div><div class="vs-val tn">38%</div><div class="vs-note">improved</div></div>
+        <div class="vs-changes">
+          <div class="vs-change"><span class="vs-change-icon">✓</span>Rate adjusted across all services</div>
+          <div class="vs-change"><span class="vs-change-icon">✓</span>Margin more than doubles</div>
+          <div class="vs-change"><span class="vs-change-icon">✓</span>Zero new clients needed</div>
+        </div>
+      </div>
+    </div>
+    <div class="deltas">
+      <div class="delta"><div class="delta-lbl">Apr → May</div><div class="delta-n tn">+$1,260</div><div class="delta-note">revenue added</div></div>
+      <div class="delta"><div class="delta-lbl">Profit lost</div><div class="delta-n tn">+$690</div><div class="delta-note">+$1,260 revenue</div></div>
+      <div class="delta"><div class="delta-lbl">Recoverable</div><div class="delta-n tn">+$1,340</div><div class="delta-note">every month</div></div>
+    </div>
+  </div>
+  <div class="blk">
+    <div class="bh">What changes · Full scenario</div>
+    <p class="lead">One rate adjustment. 30 days. Measurable.</p>
+    <div class="drow"><span class="dk">Additional profit/mo</span><span class="dv tn" style="color:var(--green)">$1,340</span><span class="dd">recoverable</span></div>
+    <p class="lead" style="margin-top:10px">This is already in your hands. Update the price. Brief the team. Measure at month end.</p>
+  </div>
+  <div class="blk">
+    <div class="bh">After the move</div>
+    <div class="spl">
+      <i style="width:54%;background:#2a3040"></i>
+      <i style="width:41%;background:#302820"></i>
+      <i style="width:5%;background:#1e2818"></i>
+    </div>
+    <div class="drow"><span class="dk">Staff & providers</span><span class="dv tn">$12,040</span><span class="dd">staff & providers</span></div>
+    <div class="drow"><span class="dk">Rent & fixed</span><span class="dv tn">$9,240</span><span class="dd">rent & fixed</span></div>
+    <div class="drow"><span class="dk" style="color:var(--green)">Yours</span><span class="dv tn" style="color:var(--green)">$2,460</span><span class="dd" style="color:var(--green)">yours</span></div>
+  </div>
+</div></div>
+
+<!-- TRAJECTORY SHEET -->
+<div class="sh" id="trajectory"><div class="si">
+  <div class="sb2"><span class="st">Profit grew, then pulled back.</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">6 months · Revenue vs profit</div>
+    <p class="lead">Four months of recovery. Last two: costs moved without a rate adjustment.</p>
+    <svg viewBox="0 0 400 130" width="100%" height="130" data-chart-id="main-chart" style="margin:12px 0 8px">
+      <defs>
+        <linearGradient id="pfill2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
+          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+        
+      </defs>
+      <path d="M0,9.6 L400,8.0" fill="none" stroke="#2a2724" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
+      <path d="M0.0,110.0 L80.0,71.7 L160.0,42.2 L240.0,16.0 L320.0,33.5 L400.0,53.2 L400.0,130 L0,130 Z" fill="url(#pfill2)"/>
+      <path d="M0.0,110.0 L80.0,71.7 L160.0,42.2 L240.0,16.0 L320.0,33.5 L400.0,53.2" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.55" vector-effect="non-scaling-stroke"/>
+      <circle cx="0.0" cy="110.0" r="5.5" fill="#ffffff" opacity="0.15"/><circle cx="0.0" cy="110.0" r="3.5" fill="#0e0d0c" stroke="#ffffff" stroke-width="1.3"/><circle cx="0.0" cy="110.0" r="1.7" fill="#ffffff"/><circle cx="80.0" cy="71.7" r="5.5" fill="#22b86a" opacity="0.15"/><circle cx="80.0" cy="71.7" r="3.5" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.3"/><circle cx="80.0" cy="71.7" r="1.7" fill="#22b86a"/><circle cx="160.0" cy="42.2" r="5.5" fill="#22b86a" opacity="0.15"/><circle cx="160.0" cy="42.2" r="3.5" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.3"/><circle cx="160.0" cy="42.2" r="1.7" fill="#22b86a"/><circle cx="240.0" cy="16.0" r="5.5" fill="#22b86a" opacity="0.15"/><circle cx="240.0" cy="16.0" r="3.5" fill="#0e0d0c" stroke="#22b86a" stroke-width="1.3"/><circle cx="240.0" cy="16.0" r="1.7" fill="#22b86a"/><circle cx="320.0" cy="33.5" r="5.5" fill="#d93030" opacity="0.15"/><circle cx="320.0" cy="33.5" r="3.5" fill="#0e0d0c" stroke="#d93030" stroke-width="1.3"/><circle cx="320.0" cy="33.5" r="1.7" fill="#d93030"/><circle cx="400.0" cy="53.2" r="5.5" fill="#d93030" opacity="0.15"/><circle cx="400.0" cy="53.2" r="3.5" fill="#0e0d0c" stroke="#d93030" stroke-width="1.3"/><circle cx="400.0" cy="53.2" r="1.7" fill="#d93030"/>
+      <text x="4" y="108" font-size="8" fill="#44403c" font-family="Satoshi,sans-serif" font-weight="700">$1.1k</text>
+      <text x="396" y="65.2" font-size="8" fill="#d93030" font-family="Satoshi,sans-serif" font-weight="700" text-anchor="end">$1.6k</text>
+      <text x="396" y="6" font-size="7" fill="#2a2724" font-family="Satoshi,sans-serif" text-anchor="end">$28.4k</text>
+      <text x="2" y="128" font-size="7.5" fill="#44403c" font-family="Satoshi,sans-serif" text-anchor="start">N</text><text x="80.0" y="128" font-size="7.5" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">D</text><text x="160.0" y="128" font-size="7.5" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">J</text><text x="240.0" y="128" font-size="7.5" fill="#22b86a" font-family="Satoshi,sans-serif" text-anchor="middle">F</text><text x="320.0" y="128" font-size="7.5" fill="#d93030" font-family="Satoshi,sans-serif" text-anchor="middle">M</text><text x="398" y="128" font-size="7.5" fill="#d93030" font-family="Satoshi,sans-serif" text-anchor="end" font-weight="700">A</text>
+    </svg>
+  </div>
+  <div class="blk">
+    <div class="bh">The numbers side by side</div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">Revenue</span><span class="dv tn">$22,400</span><span class="dd">+$1,260 revenue</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">Net profit</span><span class="dv tn" style="color:var(--red)">$1,120</span><span class="dd">+$520</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">Margin</span><span class="dv tn">5.0%</span><span class="dd">↓ −3 pts</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh" style="color:var(--ink);font-size:13px">Six months ago vs today</div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">Revenue</span><span class="dv tn">$18,400</span><span class="dd">→ $22,400</span></div>
+    <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">Net profit</span><span class="dv tn">$1,120</span><span class="dd" style="color:var(--green)">→ $1,640</span></div>
+  </div>
+  <!-- 6-MONTH HISTORIAL -->
+  <div class="blk">
+    <div class="bh">Month by month</div>
+    <div data-chart-months="main-chart"><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-bottom:14px">
+      <div style="text-align:center">
+              <div data-profit="1120" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Nov</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,120</div>
+              <div style="font-size:8px;color:var(--sub);margin-top:1px">5.0%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:36%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+            </div>
+      <div style="text-align:center">
+              <div data-profit="1470" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Dec</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,470</div>
+              <div style="font-size:8px;color:var(--sub);margin-top:1px">6.5%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:55%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+            </div>
+      <div style="text-align:center">
+              <div data-profit="1740" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Jan</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,740</div>
+              <div style="font-size:8px;color:var(--sub);margin-top:1px">7.8%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:72%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+            </div>
+      <div style="text-align:center">
+              <div data-profit="1980" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Feb</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,980</div>
+              <div style="font-size:8px;color:var(--ink);margin-top:1px">8.8%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:100%;height:100%;background:var(--green);border-radius:2px"></div></div>
+            </div>
+      <div style="text-align:center">
+              <div data-profit="1820" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Mar</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,820</div>
+              <div style="font-size:8px;color:var(--sub);margin-top:1px">8.1%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:88%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+            </div>
+      <div style="text-align:center">
+              <div data-profit="1640" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">May</div>
+              <div style="font-size:10px;font-weight:700;color:var(--ink)">$1,640</div>
+              <div style="font-size:8px;color:var(--sub);margin-top:1px">7.3%</div>
+              <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:75%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+            </div></div>
+    </div>
+    <div style="border-top:1px solid var(--bd);padding-top:12px">
+      <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Trajectory</div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px">What this means</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative">
+          <div style="position:absolute;left:0;top:0;height:100%;width:44%;background:linear-gradient(90deg,var(--green),var(--red));border-radius:2px"></div>
+          <div style="position:absolute;left:44%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--bg)"></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--red);white-space:nowrap">· Calculating</div>
+      </div>
+      <p class="lead" style="margin-top:10px">Profit grew from $1,120 to $1,980 in four months. The last two show costs outrunning the rate again. One adjustment closes the gap.</p>
+    </div>
+  </div>
+  <div class="blk"><div class="bh">Month 2</div><p class="lead">With margin recovered, the focus shifts to fixed cost structure — which lines can be renegotiated.</p></div>
+</div></div>
+
+<!-- PROBLEM SHEET -->
+<div class="sh" id="problem"><div class="si">
+  <div class="sb2"><span class="st">The problem</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">This month</div>
+    <p class="lead"><span style="color:var(--orange)">Rent, staff, and software crept up 16% over 14 months while your service rate stayed frozen.</span></p>
+    <div class="krow2 tn">
+      <div><div class="kk">Fixed ratio</div><div class="kv">41%</div></div>
+      <div><div class="kk">Cost growth</div><div class="kv">Critical</div></div>
+      <div><div class="kk">Trend</div><div class="kv">Unstable</div></div>
+    </div>
+  </div>
+  <!-- COST STRUCTURE -->
+  <div class="blk">
+    <div class="bh">Where your money goes</div>
+    <div class="spl">
+      <i style="width:54%;background:#2a3040"></i>
+      <i style="width:41%;background:#302820"></i>
+      <i style="width:5%;background:#2a2724"></i>
+    </div>
+    <div class="drow"><span class="dk">Total revenue</span><span class="dv tn">$22,400</span><span class="dd">→ </span></div>
+    <div class="drow"><span class="dk">Staff & providers</span><span class="dv tn">$12,040</span><span class="dd">54%</span></div>
+    <div class="drow"><span class="dk">Rent & fixed</span><span class="dv tn">$9,240</span><span class="dd">41%</span></div>
+    <div class="drow" style="border-top:2px solid var(--bd2)"><span class="dk" style="color:var(--ink);font-weight:700">Yours</span><span class="dv tn" style="color:var(--red)">$1,120</span><span class="dd" style="color:var(--red)">5%</span></div>
+  </div>
+  <!-- PERCEPTION VS REALITY -->
+  <div class="blk vs">
+    <div class="bh">What you feel vs what the numbers say</div>
+    <div class="sv" style="padding:11px 0"><div class="stag">What you said</div><div class="sq">"We're fully booked most weeks. Clients keep coming back."</div></div>
+    <div class="sv" style="padding:11px 0;border-top:1px solid var(--bd)"><div class="stag">What the numbers say</div><p class="lead">Revenue $22,400. Net profit <b style="color:var(--red)">$1,120</b>. Fully booked with a frozen rate means working harder for less.</p></div>
+    <div style="padding:11px 0;border-top:1px solid var(--bd)"><p class="lead">Being fully booked is not the same as being profitable. The ceiling is the rate, not the volume.</p></div>
+  </div>
+  <div class="blk"><div class="bh">Month 2</div><p class="lead">Month 2</p></div>
+  <div class="blk"><div class="bh">Month 3</div><p class="lead">With margin recovered, the focus shifts to fixed cost structure — which lines can be renegotiated.</p></div>
+</div></div>
+
+<!-- SCORE SHEET -->
+<div class="sh" id="score"><div class="si">
+  <div class="sb2"><span class="st">Business health · 46/100</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">3 areas</div>
+    <div class="drow"><span class="dk">Profitability</span><span class="dv tn" style="color:var(--red)">41%</span><span class="dd" style="color:var(--red)">Critical</span></div>
+    <div class="drow"><span class="dk">Cost structure</span><span class="dv tn" style="color:var(--orange)">Critical</span><span class="dd" style="color:var(--sub)">Unstable</span></div>
+    <div class="drow"><span class="dk">Operational efficiency</span><span class="dv tn">↑ +6%</span><span class="dd">↓ −3 pts</span></div>
+    <p class="lead" style="margin-top:12px">The rate adjustment closes the gap immediately.</p>
+  </div>
+  <div class="blk">
+    <div class="bh">Warning signals · May 2026</div>
+    <div class="area"><span class="an">Fixed costs +16%. Rate frozen.</span><span class="as" style="color:var(--red)">● Active</span></div>
+    <div class="area"><span class="an">Rent, staff, and software crept up 16% over 14 months while your service rate stayed frozen.</span><span class="as" style="color:var(--red)">● Active</span></div>
+    <div class="area"><span class="an">Growing revenue</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <div class="area"><span class="an">Stable client retention</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <div class="area"><span class="an">Above break-even</span><span class="as" style="color:var(--green)">● OK</span></div>
+    <p class="lead" style="margin-top:12px">The rate is the root cause. Costs grew, revenue didn't.</p>
+    <p class="lead" style="margin-top:6px">One $6 adjustment doubles margin without adding a single client.</p>
+  </div>
+  <div class="blk">
+    <div class="bh">Apr → May</div>
+    <div class="drow"><span class="dk">Revenue</span><span class="dv tn">$22,400</span><span class="dd">+$1,260 revenue</span></div>
+    <div class="drow"><span class="dk">Margin</span><span class="dv tn">5.0%</span><span class="dd">↓ −3 pts</span></div>
+    <div class="drow"><span class="dk">Net profit</span><span class="dv tn" style="color:var(--red)">$1,120</span><span class="dd">every month</span></div>
+    <div class="drow"><span class="dk">Score</span><span class="dv tn">46</span><span class="dd">−6 pts</span></div>
+  </div>
+</div></div>
+
+<!-- BREAK-EVEN SHEET -->
+<div class="sh" id="breakeven"><div class="si">
+  <div class="sb2"><span class="st">Break-even</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">Before you make a dollar</div>
+    <p class="lead"><b>$21,280</b> — that's what it costs to run the business. Every dollar above that is yours.</p>
+    <div class="krow2 tn">
+      <div><div class="kk">Monthly minimum</div><div class="kv">$21,280</div></div>
+      <div><div class="kk">Per day</div><div class="kv">$709</div></div>
+      <div><div class="kk">Transactions/day</div><div class="kv">~8</div></div>
+    </div>
+  </div>
+  <div class="blk">
+    <div class="bh">Your cushion</div>
+    <div class="pe-gauge">
+      <div class="pe-gauge-track"><div class="pe-gauge-fill" style="width:50%"><span style="font-size:8px;color:var(--ink);padding-left:4px">covered</span></div></div>
+      <div class="pe-gauge-labels"><span>$0</span><span>$21,280</span><span>$22,400</span></div>
+    </div>
+    <div class="drow" style="margin-top:8px"><span class="dk">Above break-even now</span><span class="dv tn" style="color:var(--green)">+$1,120</span><span class="dd">5.0% safety</span></div>
+    <div class="drow"><span class="dk">After the move</span><span class="dv tn">+$2,460</span><span class="dd">after move</span></div>
+    <div class="drow"><span class="dk">Days covered</span><span class="dv tn">30</span><span class="dd">every month</span></div>
+    <div class="drow"><span class="dk">Per day</span><span class="dv tn">$709</span><span class="dd">to cover costs</span></div>
+    <div class="drow"><span class="dk">Transactions/day</span><span class="dv tn">~8</span><span class="dd">to break even</span></div>
+  </div>
+  <div class="blk" style="border-color:rgba(217,48,48,.2);background:rgba(217,48,48,.05)">
+    <div class="bh">Alert</div>
+    <p class="lead" style="color:var(--red)">Safety margin is 5.0%. One slow week and you're below break-even.</p>
+  </div>
+  <div class="blk">
+    <div class="bh">Your potential</div>
+    <p class="lead">One rate adjustment recovers $1,340/mo without a single new client.</p>
+    <div class="drow"><span class="dk">Monthly revenue</span><span class="dv tn" style="color:var(--green)">$22,400</span><span class="dd">above break-even</span></div>
+  </div>
+</div></div>
+
+<!-- SERVICES SHEET -->
+<div class="sh" id="services"><div class="si">
+  <div class="sb2"><span class="st">Services</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">Ranked by real margin · what they keep, not what they sell</div>
+    <div class="svc"><span class="rk">1</span><div class="sinfo"><div class="sn">Core service</div><div class="sb">48% revenue · highest volume</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:85%"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">48%</span><span class="badge">Best</span></div>
+    <div class="svc"><span class="rk">2</span><div class="sinfo"><div class="sn">Premium service</div><div class="sb">24% revenue</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:70%"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">24%</span><span class="badge" style="color:var(--green)">OK</span></div>
+    <div class="svc"><span class="rk">3</span><div class="sinfo"><div class="sn">Add-on A</div><div class="sb">16% revenue</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:50%"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">16%</span><span class="badge">Low</span></div>
+    <div class="svc"><span class="rk">4</span><div class="sinfo"><div class="sn">Add-on B</div><div class="sb">8% revenue</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:35%"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">8%</span><span class="badge">Low</span></div>
+    <div class="svc"><span class="rk">5</span><div class="sinfo"><div class="sn">Entry service</div><div class="sb">4% revenue</div></div><div class="svc-bar"><div class="svc-bar-fill" style="width:15%"></div></div><span class="badge" style="font-size:8px;color:var(--dim)">4%</span><span class="badge" style="color:var(--red)">Losing</span></div>
+  </div>
+  <div class="blk">
+    <div class="bh">What we found</div>
+    <div class="ins"><div class="il">Your core service is carrying everything.</div><div class="it">Highest margin, highest volume. The $6 adjustment hits here hardest — in a good way.<br><em style="color:var(--dim)">Every upsell from entry to core improves the whole P&L.</em></div></div>
+    <div class="ins"><div class="il">Entry service costs more than it returns.</div><div class="it">Low ticket, full time slot. Consider repositioning or removing.<br><em style="color:var(--dim)">That slot generates more on the core service.</em></div></div>
+  </div>
+</div></div>
+
+<script>
+var PWD = '905ac24cc0aaa48a8ebcf261c6aed1c540bdbb18252fd3067ff0920c6d9a1dea';
+var pwScreen = document.getElementById('pw-screen');
+var pwInput  = document.getElementById('pw-input');
+var pwBtn    = document.getElementById('pw-btn');
+var pwErr    = document.getElementById('pw-err');
+var loader   = document.getElementById('loader');
+var main     = document.getElementById('main');
+
+async function tryUnlock(){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwInput.value.toLowerCase().trim()));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === PWD){
+    pwScreen.classList.add('out');
+    setTimeout(function(){
+      pwScreen.style.display='none';
+      loader.style.display='flex';
+      setTimeout(function(){
+        loader.classList.add('out');
+        main.style.opacity='1';
+        setTimeout(function(){loader.style.display='none'},450);
+      },1200);
+    },350);
+  } else {
+    pwErr.textContent='Incorrect access code.';
+    pwInput.classList.add('err');
+    setTimeout(function(){pwInput.classList.remove('err');pwErr.textContent='';},700);
+    pwInput.value='';
+    pwInput.focus();
+  }
+}
+pwBtn.addEventListener('click', tryUnlock);
+pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
+
+var body = document.body;
+document.querySelectorAll('[data-sh]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var s = document.getElementById(el.getAttribute('data-sh'));
+    if(s){ s.classList.add('open'); body.style.overflow='hidden'; }
+  });
+});
+document.querySelectorAll('[data-close]').forEach(function(b){
+  b.addEventListener('click', function(){
+    b.closest('.sh').classList.remove('open'); body.style.overflow='';
+  });
+});
+document.querySelectorAll('.sh').forEach(function(s){
+  s.addEventListener('click', function(e){
+    if(e.target===s){ s.classList.remove('open'); body.style.overflow=''; }
+  });
+});
+</script>
+<script>
+// ── CHART & HISTORIAL FIX ──
+// Reads data-profit from each month column,
+try {
+// displays the real profit number, computes bar widths proportionally,
+// redraws the small SVG path from real data, and fixes the brujula.
+(function(){
+  function fmt(n){ return '$'+n.toLocaleString('en-US'); }
+
+  // ── 1. HISTORIAL: read real profit values, fix display numbers + bars ──
+  document.querySelectorAll('[data-chart-months]').forEach(function(container){
+    var cols = container.querySelectorAll('[data-profit]');
+    if(!cols.length) return;
+
+    // Build array of {el, profit, monthEl, bigNumEl, pctEl, barInnerEl}
+    var months = [];
+    cols.forEach(function(profitDiv){
+      var col = profitDiv.parentElement;
+      var children = Array.from(col.children).filter(function(c){ return c !== profitDiv; });
+      months.push({
+        profitDiv: profitDiv,
+        col: col,
+        profit: parseInt(profitDiv.getAttribute('data-profit'), 10)
+      });
+    });
+
+    var maxP = Math.max.apply(null, months.map(function(m){ return m.profit; }));
+    var minP = Math.min.apply(null, months.map(function(m){ return m.profit; }));
+    var lastProfit = months[months.length-1].profit;
+
+    months.forEach(function(m, i){
+      var col = m.col;
+      var pct = Math.round(m.profit / maxP * 100);
+      var isLast = (i === months.length - 1);
+
+      // Find the big number div (font-size:10px font-weight:700)
+      // It's the 2nd visible child after the month label
+      var visibleDivs = Array.from(col.children).filter(function(c){
+        return c.style.display !== 'none';
+      });
+      // visibleDivs[0] = month label, visibleDivs[1] = big number, visibleDivs[2] = pct, visibleDivs[3] = bar wrapper
+      if(visibleDivs[1]) visibleDivs[1].textContent = fmt(m.profit);
+
+      // Fix margin % — recompute from profit display context isn't possible without revenue,
+      // so we keep existing pct text but color it correctly
+      // (pct text stays as-is from template — it's a separate editorial decision)
+
+      // Fix bar width
+      var barWrapper = visibleDivs[3];
+      if(barWrapper){
+        var barInner = barWrapper.querySelector('div');
+        if(barInner){
+          barInner.style.width = pct + '%';
+          // Color: last month = red if it's the lowest or has dropped
+          var dropped = (i > 0) && (m.profit <= months[i-1].profit * 0.85);
+          if(isLast && m.profit === minP){
+            barWrapper.style.background = 'rgba(217,48,48,.08)';
+            barInner.style.background = 'var(--red)';
+          } else if(i === 0 || m.profit >= months[0].profit * 0.95){
+            barWrapper.style.background = 'rgba(34,184,106,.09)';
+            barInner.style.background = 'var(--green)';
+          } else {
+            barWrapper.style.background = 'var(--bd)';
+            barInner.style.background = 'var(--sub)';
+          }
+        }
+      }
+    });
+
+    // ── 2. COMPASS: position dot based on actual trend ──
+    // Trend = last value vs peak: closer to right = worse (more red)
+    // Position 0% = peak (green), 100% = lowest (red)
+    var peakIdx = months.reduce(function(best,m,i){ return m.profit > months[best].profit ? i : best; }, 0);
+    var lastIdx = months.length - 1;
+    // If we peaked early and have fallen, dot is toward red end
+    var progressToWorst = 0;
+    if(peakIdx < lastIdx){
+      var drop = months[peakIdx].profit - months[lastIdx].profit;
+      var totalRange = months[peakIdx].profit - minP;
+      progressToWorst = totalRange > 0 ? Math.round(drop / totalRange * 100) : 0;
+    }
+    progressToWorst = Math.max(20, Math.min(90, progressToWorst));
+
+    var brujula = container.parentElement ? container.parentElement.querySelector('[style*="Trajectory"], [style*="trajectory"]') : null;
+    // Find trajectory section by looking for the gradient bar
+    var trajSection = null;
+    var allDivs = container.closest('.blk') ? container.closest('.blk').querySelectorAll('div') : [];
+    allDivs.forEach(function(d){
+      if(d.style && d.style.background && d.style.background.indexOf('linear-gradient') > -1 && d.style.background.indexOf('green') > -1){
+        trajSection = d.parentElement;
+      }
+    });
+
+    if(trajSection){
+      var gradBar = trajSection.querySelector('[style*="linear-gradient"]');
+      var dot = trajSection.querySelector('[style*="border-radius:50%"]');
+      var label = trajSection.querySelector('[style*="white-space:nowrap"]');
+      var desc = trajSection.querySelector('.lead, p');
+
+      if(dot) dot.style.left = progressToWorst + '%';
+
+      // Fix label and color
+      var isFalling = months[lastIdx].profit < months[lastIdx > 0 ? lastIdx-1 : 0].profit;
+      var isRecovering = !isFalling && months[lastIdx].profit < months[peakIdx].profit;
+      var isGrowing = months[lastIdx].profit >= months[peakIdx].profit;
+
+      if(dot){
+        if(progressToWorst > 60){
+          dot.style.background = 'var(--red)';
+        } else if(progressToWorst > 30){
+          dot.style.background = 'var(--red)';
+        } else {
+          dot.style.background = 'var(--green)';
+        }
+      }
+      if(label){
+        if(isFalling){
+          label.style.color = 'var(--red)';
+          label.textContent = '↓ Declining';
+        } else if(isRecovering){
+          label.style.color = 'var(--sub)';
+          label.textContent = '→ Stabilizing';
+        } else {
+          label.style.color = 'var(--green)';
+          label.textContent = '↑ Improving';
+        }
+      }
+      if(desc){
+        var peakProfit = months[peakIdx].profit;
+        var currentProfit = months[lastIdx].profit;
+        if(isFalling){
+          desc.innerHTML = 'Profit has declined from a peak of <b>' + fmt(peakProfit) + '</b> to <b style="color:var(--red)">' + fmt(currentProfit) + '</b>. Costs are outpacing revenue growth.';
+        } else if(isRecovering){
+          desc.innerHTML = 'Profit dipped from the peak of <b>' + fmt(peakProfit) + '</b> but has stabilized at <b>' + fmt(currentProfit) + '</b>. One more month of data will clarify the direction.';
+        } else {
+          desc.innerHTML = 'Profit has grown consistently, reaching <b style="color:var(--green)">' + fmt(currentProfit) + '</b>. The structure is working.';
+        }
+      }
+    }
+  });
+
+  // ── 3. SMALL PREVIEW SVG: redraw path from real data-profit values ──
+  document.querySelectorAll('svg[data-chart-id]').forEach(function(svg){
+    var chartId = svg.getAttribute('data-chart-id');
+    // Find the historial container that corresponds to this chart
+    var container = document.querySelector('[data-chart-months="' + chartId + '"]');
+    if(!container) return;
+
+    var profitDivs = container.querySelectorAll('[data-profit]');
+    if(profitDivs.length < 2) return;
+
+    var profits = Array.from(profitDivs).map(function(d){ return parseInt(d.getAttribute('data-profit'), 10); });
+    var maxP = Math.max.apply(null, profits);
+    var minP = Math.min.apply(null, profits);
+
+    // SVG viewBox dimensions
+    var vbMatch = svg.getAttribute('viewBox').match(/0 0 (\d+) (\d+)/);
+    if(!vbMatch) return;
+    var W = parseInt(vbMatch[1]);
+    var H = parseInt(vbMatch[2]);
+    var padT = Math.round(H * 0.10);
+    var padB = Math.round(H * 0.12);
+    var chartH = H - padT - padB;
+    var n = profits.length;
+
+    function yForProfit(p){
+      if(maxP === minP) return padT + chartH/2;
+      return padT + chartH * (1 - (p - minP) / (maxP - minP));
+    }
+
+    var pts = profits.map(function(p, i){
+      return { x: Math.round(W / (n-1) * i), y: Math.round(yForProfit(p) * 10) / 10 };
+    });
+
+    // Build path strings
+    var linePath = pts.map(function(pt, i){ return (i===0?'M':'L') + pt.x + ',' + pt.y; }).join(' ');
+    var fillPath = linePath + ' L' + pts[pts.length-1].x + ',' + H + ' L0,' + H + ' Z';
+
+    // Update existing path elements
+    var existingPaths = svg.querySelectorAll('path[fill="none"][stroke="#d93030"], path[stroke="#d93030"]');
+    existingPaths.forEach(function(p){
+      if(p.getAttribute('fill') === 'none'){
+        p.setAttribute('d', linePath);
+      } else {
+        p.setAttribute('d', fillPath);
+      }
+    });
+
+    // Also update fill area path (the one with fill="url(...)")
+    svg.querySelectorAll('path[fill^="url"]').forEach(function(p){
+      p.setAttribute('d', fillPath);
+    });
+
+    // Update start/end circles
+    svg.querySelectorAll('circle').forEach(function(c){
+      var cx = parseFloat(c.getAttribute('cx'));
+      if(cx < 5){
+        c.setAttribute('cy', pts[0].y);
+      } else if(cx > W - 5){
+        c.setAttribute('cy', pts[pts.length-1].y);
+      } else if(Math.abs(cx - pts[Math.floor(n/2)].x) < 5){
+        // mid circle if any - skip
+      }
+    });
+
+    // Fix SVG text labels: remove wrong dollar labels, keep month letters
+    // Find and fix the floating $ labels (not the month letters)
+    svg.querySelectorAll('text').forEach(function(t){
+      var txt = t.textContent.trim();
+      // Month letter labels: single char N D J F M A
+      if(/^[NDJFMA]$/.test(txt)) return;
+      // These are the $ labels we need to fix
+      var x = parseFloat(t.getAttribute('x'));
+      var y = parseFloat(t.getAttribute('y'));
+      if(x < 10){
+        // Start label (first point)
+        t.textContent = fmt(profits[0]);
+        t.setAttribute('y', Math.min(pts[0].y + 12, H - 4));
+        t.setAttribute('fill', '#44403c');
+        t.setAttribute('font-weight', '');
+      } else if(x > W * 0.8){
+        // Could be end label or revenue label
+        // Check y position: if near top = revenue line label, if mid = end profit label
+        if(y < H * 0.25){
+          // Revenue reference line label — leave it
+        } else {
+          t.textContent = fmt(profits[profits.length-1]);
+          t.setAttribute('y', Math.min(pts[pts.length-1].y + 12, H - 4));
+          t.setAttribute('fill', '#d93030');
+          t.setAttribute('font-weight', '700');
+        }
+      }
+    });
+  });
+
+})();
+} catch(e){ console.warn("Chart fix error:", e); }
+</script>
+
+
+</body>
+</html>
