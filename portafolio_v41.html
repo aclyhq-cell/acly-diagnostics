@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Diagnostic · {{NOMBRE_NEGOCIO}}</title>
-<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<!-- External font removed: caused a late font-swap reflow that froze the page on slow mobile connections. System font stack is instant and has no network dependency. -->
 <style>
 :root{
-  --bg:#090807;--bd:#1e1c1a;--bd2:#2a2724;
-  --ink:#edeae4;--sub:#b8b2aa;--dim:#6a6460;
-  --red:#d93030;--red-bg:rgba(217,48,48,.08);
-  --green:#22b86a;--green-bg:rgba(34,184,106,.09);
-  --orange:#f07020;--orange-bg:rgba(240,112,32,.09);
-  --card:#131210;
+  --bg:#F8F7F3;--bd:#E5E2D9;--bd2:#D4CFC1;
+  --ink:#1C1A16;--sub:#5B564B;--dim:#8B8375;
+  --red:#9E3327;--red-bg:rgba(158,51,39,.07);
+  --green:#1F2A44;--green-bg:rgba(31,42,68,.06);
+  --orange:#1F2A44;--orange-bg:rgba(31,42,68,.06);
+  --card:#FCFBF8;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--ink);font-family:"Satoshi",system-ui,sans-serif;
-  line-height:1.4;-webkit-font-smoothing:antialiased;
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  line-height:1.45;-webkit-font-smoothing:antialiased;
   min-height:100vh;display:flex;justify-content:center}
 .tn{font-variant-numeric:tabular-nums}
 svg.ic{display:block;flex:none}
@@ -31,14 +31,14 @@ svg.ic{display:block;flex:none}
 .pw-brand em{display:none}
 .pw-label{font-size:10px;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:28px}
 .pw-field{width:100%;max-width:280px;background:var(--card);border:1px solid var(--bd2);
-  border-radius:8px;padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  border-radius:0;padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);
   font-family:inherit;outline:none;text-align:center;letter-spacing:.5px;
   -webkit-text-security:disc}
 .pw-field:focus{border-color:var(--dim)}
 .pw-field.err{border-color:var(--red);animation:shake .3s ease}
 .pw-btn{margin-top:12px;width:100%;max-width:280px;background:var(--ink);color:var(--bg);
-  border:none;border-radius:8px;padding:13px;font-size:13px;font-weight:700;
-  font-family:inherit;cursor:pointer}
+  border:none;border-radius:0;padding:13px;font-size:13px;font-weight:700;
+  font-family:inherit;cursor:pointer;letter-spacing:.2px}
 .pw-btn:active{opacity:.85}
 .pw-err{font-size:11px;color:var(--red);margin-top:10px;height:16px;text-align:center}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -58,7 +58,7 @@ svg.ic{display:block;flex:none}
 
 /* ── CANVAS ── */
 .phone{width:100%;max-width:440px;min-height:100vh;background:var(--bg);
-  padding:0 0 calc(40px + env(safe-area-inset-bottom));opacity:0;transition:opacity .3s ease .1s}
+  padding:0 0 calc(40px + env(safe-area-inset-bottom))}
 
 /* ── HEADER ── */
 .hdr{display:flex;justify-content:space-between;align-items:center;
@@ -79,23 +79,26 @@ svg.ic{display:block;flex:none}
 .vd h1{font-size:22px;font-weight:700;letter-spacing:-.6px;line-height:1.2;color:var(--ink)}
 .vd h1 .hl{color:var(--red);font-size:28px;letter-spacing:-.9px}
 .score-row{display:flex;align-items:baseline;gap:6px;margin-top:16px;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:opacity .15s ease,transform .15s cubic-bezier(.16,1,.3,1);
   padding-top:14px;border-top:1px solid var(--bd)}
+.score-row:active{opacity:.82;transform:scale(.98)}
 .score-n{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--ink)}
 .score-denom{font-size:11px;color:var(--dim);font-weight:500}
 .score-lbl{font-size:11px;color:var(--sub);margin-left:2px}
 .score-go{margin-left:auto;font-size:10px;color:var(--dim)}
 .krow{display:flex;gap:6px;margin-top:12px}
-.kc{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:9px 10px}
+.kc{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:0;padding:9px 10px}
 .kc .kk{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);font-weight:700}
 .kc .kv{font-size:14px;font-weight:700;margin-top:3px;letter-spacing:-.3px;color:var(--ink)}
 .kc .kt{font-size:9px;font-weight:700;margin-top:3px;color:var(--sub)}
 
 /* ── CARD ── */
-.c{background:var(--card);border:1px solid var(--bd);border-radius:8px;
+.c{background:var(--card);border:1px solid var(--bd);border-radius:0;
   position:relative;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;transition:opacity .15s ease,transform .15s cubic-bezier(.16,1,.3,1);
   display:block;width:100%;text-align:left;color:inherit;font-family:inherit;margin-bottom:8px}
-.c:active{opacity:.82}
+.c:active{opacity:.82;transform:scale(.98)}
 .inside{border-top:1px solid var(--bd);padding:6px 13px;display:flex;align-items:center;flex-wrap:wrap}
 .inside .ilbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-right:7px}
 .inside .it{font-size:9px;color:var(--dim)}
@@ -109,7 +112,7 @@ svg.ic{display:block;flex:none}
 .move-big small{font-size:13px;opacity:.6;font-weight:600}
 .move-ti{font-size:13.5px;font-weight:700;letter-spacing:-.3px;margin-top:7px;line-height:1.2;color:var(--ink)}
 .move-de{font-size:11.5px;color:var(--sub);margin-top:5px;line-height:1.5}
-.scen-mini{display:flex;margin:12px 0 13px;border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.scen-mini{display:flex;margin:12px 0 13px;border:1px solid var(--bd);border-radius:0;overflow:hidden}
 .sm-col{flex:1;padding:9px 10px}
 .sm-col+.sm-col{border-left:1px solid var(--bd)}
 .sm-col .ek{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:4px}
@@ -124,7 +127,7 @@ svg.ic{display:block;flex:none}
 
 /* ── PROBLEM ── */
 .g8{display:grid;gap:8px;margin-bottom:8px}
-.g31{grid-template-columns:3fr 1.1fr}
+.g31{grid-template-columns:2.3fr 1.7fr}
 .g2{grid-template-columns:1fr 1fr}
 .prob-c{border-left:2px solid var(--bd2);margin-bottom:0}
 .prob-body{padding:13px 12px 0}
@@ -134,10 +137,7 @@ svg.ic{display:block;flex:none}
 .prob-n small{font-size:11px;color:var(--dim);font-weight:600}
 .prob-t{font-size:12px;font-weight:700;margin-top:4px;line-height:1.3;color:var(--ink)}
 .prob-flow{padding:0 10px 12px;margin-top:10px}
-.sbar{display:flex;height:3px;border-radius:2px;overflow:hidden;gap:2px;margin-bottom:8px}
-.sbar i{display:block}
 .pf-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10.5px}
-.pf-row .sw{width:5px;height:5px;border-radius:1px;flex:none}
 .pf-row .nm{flex:1;color:var(--sub)}
 .pf-row .am{font-weight:700;color:var(--ink)}
 
@@ -155,43 +155,21 @@ svg.ic{display:block;flex:none}
 .tile .tv{font-size:20px;font-weight:700;letter-spacing:-.7px;line-height:1;color:var(--ink)}
 .tile .tsub{font-size:10px;color:var(--dim);margin-top:5px;line-height:1.4;flex:1}
 
-/* ── HISTORIAL CARD ── */
-.hist-card{padding:13px 12px 0}
-.hist-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--sub);margin-bottom:5px}
-.hist-ti{font-size:13px;font-weight:700;letter-spacing:-.3px;color:var(--ink);margin-bottom:3px}
-.hist-sub{font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.4}
-.hist-months{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px}
-.hm{text-align:center}
-.hm-lbl{font-size:7.5px;color:var(--dim);margin-bottom:4px}
-.hm-val{font-size:10px;font-weight:700;color:var(--ink)}
-.hm-pct{font-size:8px;color:var(--sub);margin-top:1px}
-.hm-bar{width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden}
-.hm-fill{height:100%;border-radius:2px;background:var(--sub)}
-.hm.active .hm-lbl{color:var(--red);font-weight:700}
-.hm.active .hm-val{color:var(--red)}
-.hm.active .hm-pct{color:var(--red)}
-.hm.active .hm-fill{background:var(--red)}
-.hm.hm-up .hm-lbl{color:var(--green);font-weight:700}
-.hm.hm-up .hm-val{color:var(--green)}
-.hm.hm-up .hm-pct{color:var(--green)}
-.hm.hm-up .hm-fill{background:var(--green)}
+/* ── HISTORIAL / TRAJECTORY (brujula classes wired to markup below — were dead CSS, JS silently never ran) ── */
 .brujula{border-top:1px solid var(--bd);padding:12px 0 13px}
 .brujula-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
 .brujula-track{display:flex;align-items:center;gap:10px}
-.brujula-bar{flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative}
+.brujula-bar{flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative;overflow:visible}
 .brujula-fill{position:absolute;left:0;top:0;height:100%;border-radius:2px}
 .brujula-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
 .brujula-state{font-size:10px;font-weight:700;white-space:nowrap}
-.hist-next{margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:6px;border:1px solid var(--bd)}
-.hist-next-lbl{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
-.hist-next-msg{font-size:12px;color:var(--sub);line-height:1.5}
 
 /* ── CLOSE ── */
 .close-s{padding:10px 0 8px;margin-top:6px}
 .close-ph{font-size:16px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;color:var(--ink)}
 .close-sb{font-size:11px;color:var(--sub);margin-bottom:12px}
 .cas{display:flex;flex-direction:column;gap:7px}
-.ca{padding:12px 13px;border-radius:7px;background:var(--card);border:1px solid var(--bd)}
+.ca{padding:12px 13px;border-radius:0;background:var(--card);border:1px solid var(--bd)}
 .ca .caw{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
 .ca .cat{font-size:12.5px;line-height:1.6;color:var(--ink)}.ca .cat b{color:var(--ink);font-weight:700}
 
@@ -216,7 +194,7 @@ svg.ic{display:block;flex:none}
   color:var(--sub);font-size:16px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sclose:active{color:var(--ink)}
-.blk{border:1px solid var(--bd);border-radius:7px;padding:16px 14px;background:var(--card);margin-bottom:12px}
+.blk{border:1px solid var(--bd);border-radius:0;padding:16px 14px;background:var(--card);margin-bottom:12px}
 .bh{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;font-weight:700}
 .lead{font-size:13px;line-height:1.58;color:var(--sub)}.lead b{color:var(--ink);font-weight:600}
 .lead .bad{color:var(--red)}.lead .good{color:var(--green)}
@@ -228,7 +206,7 @@ svg.ic{display:block;flex:none}
 .drow .dk{font-size:12px;color:var(--sub)}.drow .dv{font-size:14px;font-weight:700;color:var(--ink)}
 .drow .dd{font-size:10px;font-weight:600;text-align:right;min-width:78px;color:var(--sub)}
 .step{display:flex;gap:10px;padding:11px 0}.step+.step{border-top:1px solid var(--bd)}
-.step .no{width:18px;height:18px;border-radius:4px;background:rgba(255,255,255,.08);
+.step .no{width:18px;height:18px;border-radius:0;background:rgba(28,26,22,.06);
   color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
 .step .tx{font-size:12px;line-height:1.5;color:var(--sub)}.step .tx b{color:var(--ink)}
 .tline{display:flex;gap:10px;padding:10px 0}.tline+.tline{border-top:1px solid var(--bd)}
@@ -244,15 +222,13 @@ svg.ic{display:block;flex:none}
 .svc .sinfo .sb{font-size:10px;color:var(--dim);margin-top:1px}
 .svc .svc-bar{flex:1;height:3px;background:var(--bd);border-radius:2px;margin:0 8px;overflow:hidden}
 .svc .svc-bar-fill{height:100%;border-radius:2px;background:var(--sub)}
-.badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;
-  color:var(--sub);background:rgba(255,255,255,.05)}
+.badge{font-size:9px;font-weight:700;color:var(--sub);background:none}
 .ins{padding:11px 0}.ins+.ins{border-top:1px solid var(--bd)}
 .ins .il{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px}
 .ins .it{font-size:12px;color:var(--sub);line-height:1.5}
 .area{display:flex;align-items:center;gap:10px;padding:9px 0}.area+.area{border-top:1px solid var(--bd)}
 .area .an{flex:1;font-size:12.5px;color:var(--ink)}
 .area .as{font-size:10px;font-weight:700;color:var(--sub)}
-.spl{display:flex;height:4px;border-radius:2px;overflow:hidden;gap:2px;margin:3px 0 12px}.spl i{display:block}
 .vs .sv{padding:11px 0}.vs .sv+.sv{border-top:1px solid var(--bd)}
 .vs .stag{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
 .vs .sq{font-size:12.5px;font-style:italic;color:var(--sub);line-height:1.5}
@@ -264,7 +240,7 @@ svg.ic{display:block;flex:none}
 .pe-gauge-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--dim)}
 /* VS comparison */
 .vs-cols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.vs-col{background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:6px;padding:12px 10px}
+.vs-col{background:rgba(28,26,22,.02);border:1px solid var(--bd);border-radius:0;padding:12px 10px}
 .vs-col.vs-after{border-color:rgba(34,184,106,.2);background:rgba(34,184,106,.04)}
 .vs-era{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
 .vs-after .vs-era{color:var(--green)}
@@ -278,11 +254,28 @@ svg.ic{display:block;flex:none}
 .vs-change-icon{color:var(--green);font-size:10px;margin-top:1px;flex:none}
 /* Deltas row */
 .deltas{display:flex;gap:8px;margin-top:12px}
-.delta{flex:1;text-align:center;background:rgba(34,184,106,.06);border:1px solid rgba(34,184,106,.15);border-radius:6px;padding:10px 6px}
+.delta{flex:1;text-align:center;background:rgba(31,42,68,.06);border:1px solid rgba(31,42,68,.15);border-radius:0;padding:10px 6px}
 .delta-lbl{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
 .delta-n{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-.4px}
 .delta-note{font-size:9px;color:var(--sub);margin-top:2px}
-@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}
+  .phone>.hdr,.phone>.body>div{opacity:1 !important;transform:none !important}}
+
+/* ── ENTRANCE CASCADE ── */
+.phone>.hdr,.phone>.body>div{opacity:0;transform:translateY(8px)}
+.phone.show>.hdr{animation:cardIn .5s cubic-bezier(.16,1,.3,1) .04s forwards}
+.phone.show>.body>div:nth-child(1){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .10s forwards}
+.phone.show>.body>div:nth-child(2){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .16s forwards}
+.phone.show>.body>div:nth-child(3){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .22s forwards}
+.phone.show>.body>div:nth-child(4){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .28s forwards}
+.phone.show>.body>div:nth-child(5){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .34s forwards}
+.phone.show>.body>div:nth-child(6){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .40s forwards}
+.phone.show>.body>div:nth-child(7){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .46s forwards}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+
+/* ── "INSIDE" INVITATION ── */
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+.move-c .inside .ilbl{animation:breathe 3.2s ease-in-out .6s infinite}
 </style>
 </head>
 <body>
@@ -377,8 +370,8 @@ svg.ic{display:block;flex:none}
 </div>
 
 <!-- APR→MAY + CHART -->
-<div style="display:grid;grid-template-columns:1fr 1.7fr;gap:8px;margin-bottom:8px">
-  <div class="c" data-sh="trajectory" style="margin-bottom:0;padding:12px 10px;min-width:0">
+<div style="display:grid;grid-template-columns:1.2fr 1.6fr;gap:8px;margin-bottom:8px">
+  <div class="c" data-sh="trajectory" data-anchor="trajectory-compare" style="margin-bottom:0;padding:12px 10px;min-width:0">
     <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px">{{DELTA1_LBL}}</div>
     <p data-delta-narrative style="font-size:12px;line-height:1.55;color:var(--sub);flex:1">Revenue kept coming in. But costs moved faster. You ended the month with <b style="color:var(--red)">{{DELTA3_NOTE}}</b> vs last month.</p>
     <div style="font-size:9px;color:var(--dim);margin-top:10px">Tap to see why →</div>
@@ -391,12 +384,12 @@ svg.ic{display:block;flex:none}
       <svg width="100%" height="82" viewBox="0 0 400 82" preserveAspectRatio="none" data-preview-chart style="display:block">
         <defs>
           <linearGradient id="pfill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
-            <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+            <stop offset="0" stop-color="#1C1A16" stop-opacity=".05"/>
+            <stop offset="1" stop-color="#1C1A16" stop-opacity="0"/>
           </linearGradient>
         </defs>
         <path data-fill d="M0,41 L400,41" fill="url(#pfill)"/>
-        <path data-line d="M0,41 L400,41" fill="none" stroke="#ffffff" stroke-width="1.3" opacity="0.65" vector-effect="non-scaling-stroke"/>
+        <path data-line d="M0,41 L400,41" fill="none" stroke="#1C1A16" stroke-width="1.3" opacity="0.55" vector-effect="non-scaling-stroke"/>
         <g data-dots></g>
         <g data-labels></g>
       </svg>
@@ -420,14 +413,9 @@ svg.ic{display:block;flex:none}
       <div class="prob-t">{{PROB1_TITULO}}</div>
     </div>
     <div class="prob-flow">
-      <div class="sbar">
-        <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
-        <i style="width:{{FLOW3_PCT}};background:#302820"></i>
-        <i style="width:{{FLOW4_PCT}};background:#1e3a2e"></i>
-      </div>
-      <div class="pf-row"><span class="sw" style="background:#2a3040"></span><span class="nm">{{FLOW2_LBL}}</span><span class="am">{{FLOW2_PCT}}</span></div>
-      <div class="pf-row"><span class="sw" style="background:#302820"></span><span class="nm">{{FLOW3_LBL}}</span><span class="am">{{FLOW3_PCT}}</span></div>
-      <div class="pf-row"><span class="sw" style="background:#1e3a2e"></span><span class="nm">{{FLOW4_LBL}}</span><span class="am">{{FLOW4_PCT}}</span></div>
+      <div class="pf-row"><span class="nm">{{FLOW2_LBL}}</span><span class="am">{{FLOW2_PCT}}</span></div>
+      <div class="pf-row" style="border-top:1px solid var(--bd)"><span class="nm">{{FLOW3_LBL}}</span><span class="am">{{FLOW3_PCT}}</span></div>
+      <div class="pf-row" style="border-top:1px solid var(--bd)"><span class="nm">{{FLOW4_LBL}}</span><span class="am">{{FLOW4_PCT}}</span></div>
     </div>
     <div class="inside">
       <span class="ilbl">inside</span>
@@ -435,12 +423,12 @@ svg.ic{display:block;flex:none}
     </div>
   </div>
 
-  <div class="c ind-c" data-sh="score">
+  <div class="c ind-c" data-sh="score" data-anchor="score-signals">
     <div class="ind"><span class="il">{{NAV_S1}}</span><span class="is" style="color:var(--red)">{{PROB1_CHIP2_VAL}}</span></div>
     <div class="ind"><span class="il">{{NAV_S2}}</span><span class="is" style="color:var(--sub)">{{PROB1_CHIP3_VAL}}</span></div>
     <div class="ind"><span class="il">{{NAV_S3}}</span><span class="is" style="color:var(--sub)">{{PROB1_CHIP2_LBL}}</span></div>
     <div class="ind"><span class="il">{{NAV_S4}}</span><span class="is" style="color:var(--ink)">{{PROB1_CHIP3_LBL}}</span></div>
-    <div class="inside"><span class="it" style="font-size:8px">Apr → May ›</span></div>
+    <div class="inside"><span class="it" style="font-size:8px">Signal flags ›</span></div>
   </div>
 </div>
 
@@ -569,11 +557,6 @@ svg.ic{display:block;flex:none}
   </div>
   <div class="blk">
     <div class="bh">{{STK_TITULO}}</div>
-    <div class="spl">
-      <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
-      <i style="width:{{FLOW3_PCT}};background:#302820"></i>
-      <i style="width:{{FLOW4_PCT}};background:#1e2818"></i>
-    </div>
     <div class="drow"><span class="dk">{{FLOW2_LBL}}</span><span class="dv tn">{{STK_SEG1_VAL}}</span><span class="dd">{{STK_SEG1_LBL}}</span></div>
     <div class="drow"><span class="dk">{{FLOW3_LBL}}</span><span class="dv tn">{{STK_SEG2_VAL}}</span><span class="dd">{{STK_SEG2_LBL}}</span></div>
     <div class="drow"><span class="dk" style="color:var(--green)">{{FLOW4_LBL}}</span><span class="dv tn" style="color:var(--green)">{{STK_SEG3_VAL}}</span><span class="dd" style="color:var(--green)">{{STK_SEG3_LBL}}</span></div>
@@ -589,20 +572,20 @@ svg.ic{display:block;flex:none}
     <svg viewBox="0 0 400 130" width="100%" height="130" data-sheet-chart style="margin:12px 0 8px">
       <defs>
         <linearGradient id="pfill2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#ffffff" stop-opacity=".04"/>
-          <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+          <stop offset="0" stop-color="#1C1A16" stop-opacity=".05"/>
+          <stop offset="1" stop-color="#1C1A16" stop-opacity="0"/>
         </linearGradient>
       </defs>
       <path data-fill d="M0,65 L400,65" fill="url(#pfill2)"/>
-      <path data-line d="M0,65 L400,65" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.6" vector-effect="non-scaling-stroke"/>
+      <path data-line d="M0,65 L400,65" fill="none" stroke="#1C1A16" stroke-width="1.5" opacity="0.55" vector-effect="non-scaling-stroke"/>
       <g data-dots></g>
-      <text data-start-label x="4" y="77" font-size="8" fill="#44403c" font-family="Satoshi,sans-serif" font-weight="700"></text>
-      <text data-end-label x="396" y="77" font-size="8" fill="#d93030" font-family="Satoshi,sans-serif" font-weight="700" text-anchor="end"></text>
+      <text data-start-label x="4" y="77" font-size="8" fill="#8B8375" font-family="-apple-system,sans-serif" font-weight="700"></text>
+      <text data-end-label x="396" y="77" font-size="8" fill="#9E3327" font-family="-apple-system,sans-serif" font-weight="700" text-anchor="end"></text>
       <g data-labels></g>
     </svg>
   </div>
   <div class="blk">
-    <div class="bh">The numbers side by side</div>
+    <div class="bh" id="trajectory-compare">The numbers side by side</div>
     <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET1_LABEL}}</span><span class="dv tn">{{MET1_NUM}}</span><span class="dd">{{DELTA2_NOTE}}</span></div>
     <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET2_LABEL}}</span><span class="dv tn" style="color:var(--red)">{{MET2_VAL}}</span><span class="dd">{{DELTA3_NOTE}}</span></div>
     <div class="drow"><span class="dk" style="color:var(--ink);font-size:13px">{{MET3_LABEL}}</span><span class="dv tn">{{MET3_NUM}}</span><span class="dd">{{MET3_TAG}}</span></div>
@@ -616,22 +599,22 @@ svg.ic{display:block;flex:none}
   <div class="blk">
     <div class="bh">Month by month</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:14px">
-      <div data-hm-col data-profit="4200" data-month="Nov" style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S5}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_NOW_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:100%;height:100%;background:var(--green);border-radius:2px"></div></div></div>
-      <div data-hm-col data-profit="4680" data-month="Dec" style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S6}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA1_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:85%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
-      <div data-hm-col data-profit="5100" data-month="Jan" style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S7}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA2_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:65%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
-      <div data-hm-col data-profit="5380" data-month="Feb" style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S8}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA3_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:50%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
-      <div data-hm-col data-profit="5120" data-month="Mar" style="text-align:center"><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S9}}</div><div style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_LATER_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_LATER_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div style="width:40%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
-      <div data-hm-col data-profit="4830" data-month="May" style="text-align:center"><div style="font-size:7.5px;color:var(--red);font-weight:700;margin-bottom:4px">{{MES_DIAGNOSTICO}}</div><div style="font-size:10px;font-weight:700;color:var(--red)">{{MET2_VAL}}</div><div style="font-size:8px;color:var(--red);margin-top:1px">{{MARGEN_SEGURIDAD_PCT}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--red-bg);margin-top:5px;overflow:hidden"><div style="width:36%;height:100%;background:var(--red);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="4200" data-month="Nov" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S5}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_NOW_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:100%;height:100%;background:var(--green);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="4680" data-month="Dec" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S6}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA1_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:85%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="5100" data-month="Jan" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S7}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA2_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:65%;height:100%;background:var(--sub);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="5380" data-month="Feb" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S8}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--ink)">{{DELTA3_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET3_NOW_NOTE}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:50%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="5120" data-month="Mar" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--dim);margin-bottom:4px">{{NAV_S9}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--ink)">{{VS_MET1_LATER_NUM}}</div><div style="font-size:8px;color:var(--sub);margin-top:1px">{{VS_MET2_LATER_VAL}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:40%;height:100%;background:var(--dim);border-radius:2px"></div></div></div>
+      <div data-hm-col data-profit="4830" data-month="May" style="text-align:center"><div class="hm-lbl" style="font-size:7.5px;color:var(--red);font-weight:700;margin-bottom:4px">{{MES_DIAGNOSTICO}}</div><div class="hm-val" style="font-size:10px;font-weight:700;color:var(--red)">{{MET2_VAL}}</div><div style="font-size:8px;color:var(--red);margin-top:1px">{{MARGEN_SEGURIDAD_PCT}}</div><div style="width:100%;height:3px;border-radius:2px;background:var(--red-bg);margin-top:5px;overflow:hidden"><div class="hm-fill" style="width:36%;height:100%;background:var(--red);border-radius:2px"></div></div></div>
     </div>
-    <div style="border-top:1px solid var(--bd);padding-top:12px">
-      <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">{{NAV_S0}}</div>
+    <div class="brujula">
+      <div class="brujula-lbl">{{NAV_S0}}</div>
       <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:6px">{{HIST_ACCION_TITULO}}</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative">
-          <div style="position:absolute;left:0;top:0;height:100%;width:36%;background:linear-gradient(90deg,var(--green),var(--red));border-radius:2px"></div>
-          <div style="position:absolute;left:36%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)"></div>
+      <div class="brujula-track">
+        <div class="brujula-bar">
+          <div class="brujula-fill" style="width:100%;background:linear-gradient(90deg,var(--green),var(--red))"></div>
+          <div class="brujula-dot" style="left:36%;background:var(--red)"></div>
         </div>
-        <div style="font-size:10px;font-weight:700;color:var(--red);white-space:nowrap">↓ {{HIST_MET2_BADGE}}</div>
+        <div class="brujula-state" style="color:var(--red)">↓ {{HIST_MET2_BADGE}}</div>
       </div>
       <p class="lead" style="margin-top:10px">{{HIST_ACCION_DESC}}</p>
     </div>
@@ -654,11 +637,6 @@ svg.ic{display:block;flex:none}
   <!-- COST STRUCTURE -->
   <div class="blk">
     <div class="bh">Cost structure · by area</div>
-    <div class="spl">
-      <i style="width:{{FLOW2_PCT}};background:#2a3040"></i>
-      <i style="width:{{FLOW3_PCT}};background:#302820"></i>
-      <i style="width:{{FLOW4_PCT}};background:#1e3a2e"></i>
-    </div>
     <div class="drow"><span class="dk">{{FLOW1_LBL}}</span><span class="dv tn">{{FLOW1_MONTO}}</span><span class="dd">100%</span></div>
     <div class="drow"><span class="dk">{{FLOW2_LBL}}</span><span class="dv tn">{{FLOW2_MONTO}}</span><span class="dd">{{FLOW2_PCT}}</span></div>
     <div class="drow"><span class="dk">{{FLOW3_LBL}}</span><span class="dv tn">{{FLOW3_MONTO}}</span><span class="dd">{{FLOW3_PCT}}</span></div>
@@ -686,7 +664,7 @@ svg.ic{display:block;flex:none}
     <p class="lead" style="margin-top:12px">{{RAD_SUB}}</p>
   </div>
   <div class="blk">
-    <div class="bh">Signal flags · {{MES_DIAGNOSTICO}}</div>
+    <div class="bh" id="score-signals">Signal flags · {{MES_DIAGNOSTICO}}</div>
     <div class="area"><span class="an">{{PROB1_TITULO}}</span><span class="as" style="color:var(--red)">● Active</span></div>
     <div class="area"><span class="an">{{PROB1_DESC}}</span><span class="as" style="color:var(--red)">● Active</span></div>
     <div class="area"><span class="an">{{MET1_LABEL}} growing</span><span class="as" style="color:var(--green)">● OK</span></div>
@@ -778,7 +756,8 @@ async function tryUnlock(){
       loader.style.display='flex';
       setTimeout(function(){
         loader.classList.add('out');
-        main.style.opacity='1';
+        main.classList.add('show');
+        animateNumbers();
         setTimeout(function(){loader.style.display='none'},450);
       },1200);
     },350);
@@ -793,11 +772,48 @@ async function tryUnlock(){
 pwBtn.addEventListener('click', tryUnlock);
 pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
 
+// ── COUNT-UP: hero numbers land with motion instead of popping in ──
+var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(node, duration){
+  var raw = node.textContent;
+  var m = raw.match(/-?[\d,]+\.?\d*/);
+  if(!m) return;
+  var numStr = m[0].replace(/,/g,'');
+  var endVal = parseFloat(numStr);
+  var decimals = numStr.indexOf('.') > -1 ? numStr.split('.')[1].length : 0;
+  var prefix = raw.slice(0, m.index);
+  var suffix = raw.slice(m.index + m[0].length);
+  var t0 = null;
+  function step(ts){
+    if(!t0) t0 = ts;
+    var p = Math.min((ts - t0) / duration, 1);
+    var e = 1 - Math.pow(1 - p, 3);
+    var cur = endVal * e;
+    var disp = decimals > 0 ? cur.toFixed(decimals) : Math.round(cur).toLocaleString('en-US');
+    node.textContent = prefix + disp + suffix;
+    if(p < 1) requestAnimationFrame(step); else node.textContent = raw;
+  }
+  requestAnimationFrame(step);
+}
+function animateNumbers(){
+  if(reduceMotion || isNaN(parseFloat(document.querySelector('.score-n').textContent))) return;
+  document.querySelectorAll('.score-n, .kc .kv').forEach(function(el){ countUp(el, 750); });
+  var moveBig = document.querySelector('.move-big');
+  if(moveBig && moveBig.firstChild) countUp(moveBig.firstChild, 750);
+}
+
 var body = document.body;
 document.querySelectorAll('[data-sh]').forEach(function(el){
   el.addEventListener('click', function(){
     var s = document.getElementById(el.getAttribute('data-sh'));
-    if(s){ s.classList.add('open'); body.style.overflow='hidden'; }
+    if(!s) return;
+    s.classList.add('open'); body.style.overflow='hidden';
+    var anchorId = el.getAttribute('data-anchor');
+    var anchorEl = anchorId ? document.getElementById(anchorId) : null;
+    requestAnimationFrame(function(){
+      if(anchorEl) anchorEl.scrollIntoView({block:'start',behavior:'smooth'});
+      else s.scrollTop = 0;
+    });
   });
 });
 document.querySelectorAll('[data-close]').forEach(function(b){
@@ -824,11 +840,11 @@ document.querySelectorAll('.sh').forEach(function(s){
     var smSvg = document.querySelector('svg[data-preview-chart]');
     if(smSvg){
       var W=400, H=82;
-      smSvg.innerHTML = '<text x="200" y="38" font-size="10" fill="#44403c" font-family="Satoshi,sans-serif" text-anchor="middle">This is your starting point.</text><text x="200" y="54" font-size="9" fill="#2a2724" font-family="Satoshi,sans-serif" text-anchor="middle">Next month you will see how it moves.</text>';
+      smSvg.innerHTML = '<text x="200" y="38" font-size="10" fill="#8B8375" font-family="-apple-system,sans-serif" text-anchor="middle">This is your starting point.</text><text x="200" y="54" font-size="9" fill="#5B564B" font-family="-apple-system,sans-serif" text-anchor="middle">Next month you will see how it moves.</text>';
     }
     var bigSvg = document.querySelector('svg[data-sheet-chart]');
     if(bigSvg){
-      bigSvg.innerHTML = '<text x="200" y="55" font-size="11" fill="#44403c" font-family="Satoshi,sans-serif" text-anchor="middle" font-weight="700">Month 1 — baseline recorded.</text><text x="200" y="74" font-size="9" fill="#2a2724" font-family="Satoshi,sans-serif" text-anchor="middle">Next diagnostic shows your first trend line.</text>';
+      bigSvg.innerHTML = '<text x="200" y="55" font-size="11" fill="#8B8375" font-family="-apple-system,sans-serif" text-anchor="middle" font-weight="700">Month 1 — baseline recorded.</text><text x="200" y="74" font-size="9" fill="#5B564B" font-family="-apple-system,sans-serif" text-anchor="middle">Next diagnostic shows your first trend line.</text>';
     }
     return;
   }
@@ -856,8 +872,8 @@ document.querySelectorAll('.sh').forEach(function(s){
 
   // dot color based on direction vs previous month
   function dotColor(i){
-    if(i===0) return '#ffffff';
-    return profits[i] >= profits[i-1] ? '#22b86a' : '#d93030';
+    if(i===0) return '#5B564B';
+    return profits[i] >= profits[i-1] ? '#1F2A44' : '#9E3327';
   }
 
   function buildDots(pts, scale){
@@ -868,7 +884,7 @@ document.querySelectorAll('.sh').forEach(function(s){
       var col = dotColor(i);
       var r1=+(4.5*s).toFixed(1), r2=+(2.8*s).toFixed(1), r3=+(1.4*s).toFixed(1);
       out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r1+'" fill="'+col+'" opacity="0.15"/>';
-      out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r2+'" fill="#0e0d0c" stroke="'+col+'" stroke-width="1.2"/>';
+      out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r2+'" fill="#FCFBF8" stroke="'+col+'" stroke-width="1.2"/>';
       out += '<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+r3+'" fill="'+col+'"/>';
     });
     return out;
@@ -883,7 +899,7 @@ document.querySelectorAll('.sh').forEach(function(s){
       var anchor = i===0?'start':(i===n-1?'end':'middle');
       var lxAdj = i===0?2:(i===n-1?W-2:lx);
       var fw = i===n-1?' font-weight="700"':'';
-      out += '<text x="'+lxAdj+'" y="'+letterY+'" font-size="'+fz+'" fill="'+col+'" font-family="Satoshi,sans-serif" text-anchor="'+anchor+'"'+fw+'>'+letters[i]+'</text>';
+      out += '<text x="'+lxAdj+'" y="'+letterY+'" font-size="'+fz+'" fill="'+col+'" font-family="-apple-system,sans-serif" text-anchor="'+anchor+'"'+fw+'>'+letters[i]+'</text>';
     });
     return out;
   }

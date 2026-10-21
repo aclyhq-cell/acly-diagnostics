@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Financial Diagnostic · Acly</title>
+<!-- External font removed: caused a late font-swap reflow that froze the page on slow mobile connections. System font stack is instant and has no network dependency. -->
+<style>
+:root{
+  --bg:#F8F7F3;--bd:#E5E2D9;--bd2:#D4CFC1;
+  --ink:#1C1A16;--sub:#5B564B;--dim:#8B8375;
+  --red:#9E3327;--red-bg:rgba(158,51,39,.07);
+  --green:#1F2A44;--green-bg:rgba(31,42,68,.06);
+  --orange:#1F2A44;--orange-bg:rgba(31,42,68,.06);
+  --card:#FCFBF8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  line-height:1.45;-webkit-font-smoothing:antialiased;
+  min-height:100vh;display:flex;justify-content:center}
+.tn{font-variant-numeric:tabular-nums}
+svg.ic{display:block;flex:none}
+/* Micro-labels stay in a plain sans, small-caps register — the only place sans appears */
+.sans,.kk,.kt,.move-ey,.prob-ey,.bh,.ilbl,.caw,.stag,.vd-status,.hdr-case,
+.brand small,.il,.is,.tl,.dk,.dd,.an,.as,.pw-label,.ld-sub,.sinfo .sb,
+.foot-l,.foot-r,.score-lbl,.score-go,.badge,.it,.step .no,.tw,.pw-btn,
+.pw-field,.pf-row .nm{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+/* Signature mark: the boxed serif monogram, echoing the printed letter's seal */
+.mono{width:26px;height:26px;border:1.5px solid var(--ink);display:flex;align-items:center;
+  justify-content:center;font-family:Cambria,Georgia,serif;font-size:15px;
+  font-weight:400;color:var(--ink);flex:none;letter-spacing:0}
+.mono.lg{width:44px;height:44px;font-size:26px;border-width:1.5px}
+
+/* ── PASSWORD ── */
+#pw-screen{position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  padding:32px 24px}
+#pw-screen.out{opacity:0;pointer-events:none;transition:opacity .35s ease}
+.pw-brand{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.3px;margin-bottom:4px;font-family:Cambria,Georgia,serif}
+.pw-brand em{color:#1F2A44;font-style:normal}
+.pw-label{font-size:10px;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:28px}
+.pw-field{width:100%;max-width:280px;background:var(--card);border:1px solid var(--bd2);
+  border-radius:0;padding:13px 14px;font-size:14px;font-weight:600;color:var(--ink);
+  font-family:inherit;outline:none;text-align:center;letter-spacing:.5px;
+  -webkit-text-security:disc}
+.pw-field:focus{border-color:var(--dim)}
+.pw-field.err{border-color:var(--red);animation:shake .3s ease}
+.pw-btn{margin-top:12px;width:100%;max-width:280px;background:var(--ink);color:var(--bg);
+  border:none;border-radius:0;padding:13px;font-size:13px;font-weight:700;
+  font-family:inherit;cursor:pointer;letter-spacing:.2px}
+.pw-btn:active{opacity:.85}
+.pw-err{font-size:11px;color:var(--red);margin-top:10px;height:16px;text-align:center}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── LOADER ── */
+#loader{position:fixed;inset:0;z-index:200;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  transition:opacity .4s ease}
+#loader.out{opacity:0;pointer-events:none}
+.ld-brand{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.3px;font-family:Cambria,Georgia,serif}
+.ld-brand em{color:#1F2A44;font-style:normal}
+.ld-sub{font-size:10px;color:var(--dim);letter-spacing:.3px}
+.ld-bar{width:48px;height:2px;background:var(--bd);border-radius:2px;overflow:hidden;margin-top:4px}
+.ld-fill{height:100%;background:var(--sub);border-radius:2px;width:0;
+  animation:ldfill 1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ldfill{0%{width:0}60%{width:70%}100%{width:100%}}
+
+/* ── CANVAS ── */
+.phone{width:100%;max-width:440px;min-height:100vh;background:var(--bg);
+  padding:0 0 calc(40px + env(safe-area-inset-bottom))}
+
+/* ── HEADER ── */
+.hdr{display:flex;justify-content:space-between;align-items:center;
+  padding:13px 16px 11px;border-bottom:1px solid var(--bd)}
+.hdr-l{display:flex;align-items:center;gap:9px}
+.brand{font-weight:700;font-size:13px;color:var(--ink);font-family:Cambria,Georgia,serif}
+.brand small{display:block;font-weight:500;font-size:8.5px;color:var(--dim);margin-top:.5px}
+.hdr-r{text-align:right}
+.hdr-case{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--dim)}
+.hdr-biz{font-size:11px;font-weight:600;color:var(--sub);margin-top:2px}
+
+.body{padding:0 16px}
+
+/* ── VERDICT ── */
+.vd{margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--bd)}
+.vd-status{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:#1C1A16;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.vd-status::before{content:'';width:4px;height:4px;border-radius:50%;background:#1C1A16;flex:none}
+.vd h1{font-size:22px;font-weight:700;letter-spacing:-.6px;line-height:1.2;color:var(--ink)}
+.vd h1 .hl{color:var(--red);font-size:28px;letter-spacing:-.9px}
+.score-row{display:flex;align-items:baseline;gap:6px;margin-top:12px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:opacity .15s ease,transform .15s cubic-bezier(.16,1,.3,1);
+  padding-top:14px;border-top:1px solid var(--bd)}
+.score-row:active{opacity:.82;transform:scale(.98)}
+.score-n{font-size:28px;font-weight:700;letter-spacing:-1px;color:var(--ink)}
+.score-denom{font-size:11px;color:var(--dim);font-weight:500}
+.score-lbl{font-size:11px;color:var(--sub);margin-left:2px}
+.score-go{margin-left:auto;font-size:10px;color:var(--dim)}
+.krow{display:flex;margin-top:10px;border:1px solid var(--bd);background:var(--card)}
+.kc{flex:1;padding:9px 10px}
+.kc+.kc{border-left:1px solid var(--bd)}
+.kc .kk{font-size:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);font-weight:700}
+.kc .kv{font-size:14px;font-weight:700;margin-top:3px;letter-spacing:-.3px;color:var(--ink)}
+.kc .kt{font-size:9px;font-weight:700;margin-top:3px;color:var(--sub)}
+
+/* ── CARD ── */
+.c{background:var(--card);border:1px solid var(--bd);border-radius:0;
+  position:relative;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;transition:opacity .15s ease,transform .15s cubic-bezier(.16,1,.3,1);
+  display:block;width:100%;text-align:left;color:inherit;font-family:inherit;margin-bottom:6px}
+.c:active{opacity:.82;transform:scale(.98)}
+.inside{border-top:1px solid var(--bd);padding:6px 13px;display:flex;align-items:center;flex-wrap:wrap}
+.inside .ilbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-right:7px}
+.inside .it{font-size:9px;color:var(--dim)}
+
+/* ── THE MOVE ── */
+.move-c{border-left:3px solid var(--green);background:rgba(31,42,68,.035)}
+.move-body{padding:11px 13px 0}
+.move-ey{font-size:8.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.move-big{font-size:36px;font-weight:700;letter-spacing:-1.6px;color:var(--green);line-height:1}
+.move-big small{font-size:13px;opacity:.6;font-weight:600}
+.move-ti{font-size:13.5px;font-weight:700;letter-spacing:-.3px;margin-top:7px;line-height:1.2;color:var(--ink)}
+.move-de{font-size:11.5px;color:var(--sub);margin-top:5px;line-height:1.5}
+.scen-mini{display:flex;margin:12px 0 13px;border:1px solid var(--bd);border-radius:0;overflow:hidden}
+.sm-col{flex:1;padding:9px 10px}
+.sm-col+.sm-col{border-left:1px solid var(--bd)}
+.sm-col .ek{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);margin-bottom:4px}
+.sm-col .ev{font-size:13px;font-weight:700;color:var(--ink)}
+.sm-col .ek2{font-size:9px;color:var(--sub);margin-top:2px}
+.sm-col .ev2{font-size:13px;font-weight:700;color:var(--green)}
+
+/* ── CHART ── */
+.bc{padding:10px 13px 0}
+.bc .bch{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.bc .bcs{font-size:10px;color:var(--sub);margin-bottom:10px}
+
+/* ── PROBLEM ── */
+.g8{display:grid;gap:8px;margin-bottom:8px}
+.g31{grid-template-columns:2.3fr 1.7fr}
+.g2{grid-template-columns:1fr 1fr}
+.prob-c{border-left:2px solid var(--bd2);margin-bottom:0}
+.prob-body{padding:10px 12px 0}
+.prob-ey{font-size:8px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.prob-n{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--ink);line-height:1}
+.prob-n small{font-size:11px;color:var(--dim);font-weight:600}
+.prob-t{font-size:12px;font-weight:700;margin-top:4px;line-height:1.3;color:var(--ink)}
+.prob-flow{padding:0 10px 12px;margin-top:10px}
+.pf-row{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10.5px}
+.pf-row .nm{flex:1;color:var(--sub)}
+.pf-row .am{font-weight:700;color:var(--ink)}
+
+/* ── INDICATORS ── */
+.ind-c{display:flex;flex-direction:column;padding:11px 10px 0;margin-bottom:0}
+.ind{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.ind+.ind{border-top:1px solid var(--bd)}
+.ind .il{font-size:9.5px;font-weight:600;color:var(--ink)}
+.ind .is{font-size:8.5px;font-weight:700;color:var(--sub)}
+
+/* ── TILES ── */
+.tile{padding:13px 12px;margin-bottom:0;display:flex;flex-direction:column}
+.tile .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.tile .tl{font-size:11px;color:var(--sub);font-weight:600}
+.tile .tv{font-size:20px;font-weight:700;letter-spacing:-.7px;line-height:1;color:var(--ink)}
+.tile .tsub{font-size:10px;color:var(--dim);margin-top:5px;line-height:1.4;flex:1}
+
+/* ── CLOSE ── */
+.close-s{padding:10px 0 8px;margin-top:6px}
+.close-ph{font-size:16px;font-weight:700;letter-spacing:-.4px;margin-bottom:4px;color:var(--ink)}
+.close-sb{font-size:11px;color:var(--sub);margin-bottom:12px}
+.cas{display:flex;flex-direction:column;gap:7px}
+.ca{padding:12px 13px;border-radius:0;background:var(--card);border:1px solid var(--bd);border-left:2px solid var(--bd2)}
+.ca.week{border-left:2px solid var(--green)}
+.ca.month{border-left:2px solid var(--sub)}
+.ca .caw{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
+.ca .cat{font-size:12.5px;line-height:1.6;color:var(--ink)}.ca .cat b{color:var(--ink);font-weight:700}
+
+/* ── FOOTER ── */
+.foot{margin-top:22px;padding-top:14px;border-top:1px solid var(--bd);
+  display:flex;justify-content:space-between;align-items:center}
+.foot-l{font-size:9px;color:var(--dim)}
+.foot-r{font-size:9px;color:var(--dim)}
+.chv{color:var(--dim)}
+
+/* ── SHEETS ── */
+.sh{position:fixed;inset:0;z-index:100;background:var(--bg);
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.16,1,.3,1);
+  overflow-y:auto;display:flex;justify-content:center}
+.sh.open{transform:translateY(0)}
+.si{width:100%;max-width:440px;padding:0 16px calc(48px + env(safe-area-inset-bottom))}
+.sb2{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0 12px;background:var(--bg);border-bottom:1px solid var(--bd);
+  margin-bottom:14px;z-index:2}
+.sb2 .st{font-size:13px;font-weight:700;color:var(--ink)}
+.sclose{width:28px;height:28px;border-radius:50%;border:none;background:transparent;
+  color:var(--sub);font-size:16px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1}
+.sclose:active{color:var(--ink)}
+.blk{border:1px solid var(--bd);border-radius:0;padding:13px 14px;background:var(--card);margin-bottom:9px}
+.blk[id]{scroll-margin-top:52px}
+.bh{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;font-weight:700}
+.lead{font-size:13px;line-height:1.58;color:var(--sub)}.lead b{color:var(--ink);font-weight:600}
+.lead .bad{color:var(--red)}.lead .good{color:var(--green)}
+.krow2{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.krow2 .kk{font-size:8px;text-transform:uppercase;letter-spacing:.4px;color:var(--dim)}
+.krow2 .kv{font-size:17px;font-weight:700;margin-top:2px;color:var(--ink)}
+.drow{display:flex;align-items:center;justify-content:space-between;padding:11px 0}
+.drow+.drow{border-top:1px solid var(--bd)}
+.tbl{width:100%}
+.tbl-r{display:grid;grid-template-columns:1.5fr 1fr 1fr 0.9fr;align-items:center;padding:8px 0;gap:4px}
+.tbl-r+.tbl-r{border-top:1px solid var(--bd)}
+.tbl-r span{text-align:right}
+.tbl-r span:first-child{text-align:left}
+.tbl-h{padding-bottom:7px;border-bottom:1px solid var(--bd2)}
+.tbl-h span{font-size:7.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--dim);font-weight:700;line-height:1.3}
+.tk{font-size:11px;color:var(--sub)}
+.tv{font-size:11.5px;color:var(--ink);font-weight:700}
+.drow .dk{font-size:12px;color:var(--sub)}.drow .dv{font-size:14px;font-weight:700;color:var(--ink)}
+.drow .dd{font-size:10px;font-weight:600;text-align:right;min-width:78px;color:var(--sub)}
+.dd.hi{color:var(--red)}
+.step{display:flex;gap:10px;padding:11px 0}.step+.step{border-top:1px solid var(--bd)}
+.step .no{width:18px;height:18px;border-radius:0;background:rgba(28,26,22,.06);
+  color:var(--ink);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.step .tx{font-size:12px;line-height:1.5;color:var(--sub)}.step .tx b{color:var(--ink)}
+.tline{display:flex;gap:10px;padding:10px 0}.tline+.tline{border-top:1px solid var(--bd)}
+.tline .tw{font-size:9px;font-weight:700;color:var(--sub);width:58px;flex:none;padding-top:1px}
+.tline .tt{font-size:12px;line-height:1.45;color:var(--ink)}
+.wt{padding:11px 0}.wt+.wt{border-top:1px solid var(--bd)}
+.wt .wh{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--ink)}
+.wt .wd{font-size:11.5px;color:var(--sub);line-height:1.5}
+.svc{display:flex;align-items:center;gap:10px;padding:11px 0}.svc+.svc{border-top:1px solid var(--bd)}
+.svc .rk{width:16px;font-size:11px;font-weight:700;color:var(--dim)}
+.svc .sinfo{flex:1}
+.svc .sinfo .sn{font-size:12.5px;font-weight:600;color:var(--ink)}
+.svc .sinfo .sb{font-size:10px;color:var(--dim);margin-top:1px}
+.badge{font-size:10px;font-weight:700;
+  color:var(--sub);background:none}
+.ins{padding:11px 0}.ins+.ins{border-top:1px solid var(--bd)}
+.ins .il{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ins .it{font-size:12px;color:var(--sub);line-height:1.5}
+.area{display:flex;align-items:center;gap:10px;padding:9px 0}.area+.area{border-top:1px solid var(--bd)}
+.area .an{flex:1;font-size:12.5px;color:var(--ink)}
+.area .as{font-size:10px;font-weight:700;color:var(--sub)}
+.vs .sv{padding:11px 0}.vs .sv+.sv{border-top:1px solid var(--bd)}
+.vs .stag{font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.vs .sq{font-size:12.5px;font-style:italic;color:var(--sub);line-height:1.5}
+@media(prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}
+  .phone>.hdr,.phone>.body>div{opacity:1 !important;transform:none !important}}
+
+/* ── ENTRANCE CASCADE ── */
+.phone>.hdr,.phone>.body>div{opacity:0;transform:translateY(8px)}
+.phone.show>.hdr{animation:cardIn .5s cubic-bezier(.16,1,.3,1) .04s forwards}
+.phone.show>.body>div:nth-child(1){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .10s forwards}
+.phone.show>.body>div:nth-child(2){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .16s forwards}
+.phone.show>.body>div:nth-child(3){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .22s forwards}
+.phone.show>.body>div:nth-child(4){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .28s forwards}
+.phone.show>.body>div:nth-child(5){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .34s forwards}
+.phone.show>.body>div:nth-child(6){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .40s forwards}
+.phone.show>.body>div:nth-child(7){animation:cardIn .5s cubic-bezier(.16,1,.3,1) .46s forwards}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+
+/* ── "INSIDE" INVITATION ── */
+@keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+.move-c .inside .ilbl{animation:breathe 3.2s ease-in-out .6s infinite}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="pw-screen">
+  <div class="mono lg" style="margin-bottom:14px">A</div>
+  <div class="pw-brand">Acly</div>
+  <div class="pw-label">Financial Diagnostic</div>
+  <input class="pw-field" id="pw-input" type="password" placeholder="Enter access code" autocomplete="off" autocorrect="off" spellcheck="false">
+  <button class="pw-btn" id="pw-btn">Open diagnostic</button>
+  <div class="pw-err" id="pw-err"></div>
+</div>
+
+<!-- LOADER -->
+<div id="loader" style="display:none">
+  <div class="mono" style="margin-bottom:10px">A</div>
+  <div class="ld-brand">Acly</div>
+  <div class="ld-sub">Loading <span style="filter:blur(4px);opacity:0.4">The Fade Room</span></div>
+  <div class="ld-bar"><div class="ld-fill"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div class="phone" id="main">
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="mono">A</div>
+    <div class="brand">Acly<small>Financial Diagnostic</small></div>
+  </div>
+  <div class="hdr-r">
+    <div class="hdr-case">Month 6 · May 2026</div>
+    <div class="hdr-biz"><span style="filter:blur(5px);user-select:none;opacity:0.45">The Fade Room</span></div>
+  </div>
+</div>
+
+<div class="body">
+
+<!-- VERDICT -->
+<div class="vd">
+  <div class="vd-status">Attention · May 2026</div>
+  <h1>$24,600 came in.<br><span class="hl">You kept $940.</span></h1>
+
+  <div style="font-size:9.5px;color:var(--dim);font-style:italic;margin-top:2px">Based on the numbers you shared for April–May 2026.</div>
+
+  <div class="score-row" data-sh="score">
+    <span class="score-n tn">48</span>
+    <span class="score-denom"> /100</span>
+    <span class="score-lbl">Business health</span>
+    <span class="score-go">3 areas ›</span>
+  </div>
+
+  <div class="krow">
+    <div class="kc">
+      <div class="kk">What came in</div>
+      <div class="kv tn">$24,600</div>
+      <div class="kt">↑ +7%</div>
+    </div>
+    <div class="kc">
+      <div class="kk">What you kept</div>
+      <div class="kv tn">$940</div>
+      <div class="kt">↓ −40%</div>
+    </div>
+    <div class="kc">
+      <div class="kk">Of every $1</div>
+      <div class="kv tn">3.8¢</div>
+      <div class="kt">↓ −3¢</div>
+      <div style="font-size:7.5px;color:var(--dim);font-style:italic;margin-top:3px">vs. sector: pending</div>
+    </div>
+  </div>
+</div>
+
+<!-- THE MOVE -->
+<div class="c move-c" data-sh="move">
+  <div class="move-body">
+    <div class="move-ey">
+      <span>What you can do · This week</span>
+    </div>
+    <div style="font-size:10px;color:var(--dim);margin-bottom:6px">We evaluated all 3 areas of your business. This is the one with the highest impact and the lowest risk.</div>
+    <div class="move-big tn">+$1,200<small>/mo</small></div>
+    <div class="move-ti">Raise the beard trim combo by $4.</div>
+    <div class="move-de">300 clients a month ask for that service. No new clients, no changes to the barbershop.</div>
+    <div class="scen-mini">
+      <div class="sm-col">
+        <div class="ek">Today</div>
+        <div class="ev tn">$940</div>
+        <div class="ek2">what you keep · now</div>
+      </div>
+      <div class="sm-col">
+        <div class="ek">With the change</div>
+        <div class="ev2 tn">$2,140</div>
+        <div class="ek2">more per month</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:10.5px;color:var(--sub);line-height:1.6;margin:2px 0 0;padding-top:8px;border-top:1px solid var(--bd)">
+    <b style="color:var(--ink)">1.</b> Update the board & app — this week &nbsp;·&nbsp;
+    <b style="color:var(--ink)">2.</b> Brief every barber, same price &nbsp;·&nbsp;
+    <b style="color:var(--ink)">3.</b> Confirm the $1,200 at month end
+  </div>
+  <div style="font-size:9.5px;color:var(--dim);margin-top:5px">Risk: low — clients don't switch barbers over $4 on a service they already expect.</div>
+  <div class="inside">
+    <span class="ilbl">inside ›</span>
+    <span class="it">Full timeline · risks · scenario table</span>
+  </div>
+</div>
+
+<!-- APR→MAY + CHART -->
+<div style="display:grid;grid-template-columns:1.2fr 1.6fr;gap:8px;margin-bottom:8px">
+  <div class="c" data-sh="trajectory" data-anchor="trajectory-compare" style="margin-bottom:0;padding:13px 12px;min-width:0;display:flex;flex-direction:column;justify-content:space-between">
+    <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:10px">Apr → May</div>
+    <p style="font-size:12px;line-height:1.55;color:var(--sub);flex:1">Your revenue went up $1,700. But your costs went up more. You ended with <b style="color:var(--red)">$620 less</b> than last month.</p>
+    <div style="font-size:10.5px;color:var(--sub);margin-top:10px;font-style:italic">Tap to see why →</div>
+  </div>
+
+  <div class="c" data-sh="trajectory" style="margin-bottom:0">
+    <div class="bc">
+      <div class="bch">What you kept · 6 months</div>
+      <div class="bcs">Profit nearly doubled. Then it fell.</div>
+      <svg width="100%" height="82" viewBox="0 0 400 82" preserveAspectRatio="none" data-chart-id="main-chart" style="display:block">
+        <defs>
+          <linearGradient id="pfill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1C1A16" stop-opacity=".04"/>
+            <stop offset="1" stop-color="#1C1A16" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <path d="M0.0,66.0 L80.0,42.7 L160.0,26.0 L240.0,10.0 L320.0,20.7 L400.0,66.0 L400.0,82 L0,82 Z" fill="url(#pfill)"/>
+        <path class="revenue-line" d="" fill="none" stroke="#1C1A16" stroke-width="1.3" vector-effect="non-scaling-stroke"/>
+        <path class="kept-line" d="M0.0,66.0 L80.0,42.7 L160.0,26.0 L240.0,10.0 L320.0,20.7 L400.0,66.0" fill="none" stroke="#1C1A16" stroke-width="1.3" opacity="0.65" stroke-dasharray="3 2" vector-effect="non-scaling-stroke"/>
+        <circle cx="0.0" cy="66.0" r="4.5" fill="#1C1A16" opacity="0.15"/><circle cx="0.0" cy="66.0" r="2.8" fill="#F3EEE3" stroke="#1C1A16" stroke-width="1.2"/><circle cx="0.0" cy="66.0" r="1.4" fill="#1C1A16"/><circle cx="80.0" cy="42.7" r="4.5" fill="#1F2A44" opacity="0.15"/><circle cx="80.0" cy="42.7" r="2.8" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.2"/><circle cx="80.0" cy="42.7" r="1.4" fill="#1F2A44"/><circle cx="160.0" cy="26.0" r="4.5" fill="#1F2A44" opacity="0.15"/><circle cx="160.0" cy="26.0" r="2.8" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.2"/><circle cx="160.0" cy="26.0" r="1.4" fill="#1F2A44"/><circle cx="240.0" cy="10.0" r="4.5" fill="#1F2A44" opacity="0.15"/><circle cx="240.0" cy="10.0" r="2.8" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.2"/><circle cx="240.0" cy="10.0" r="1.4" fill="#1F2A44"/><circle cx="320.0" cy="20.7" r="4.5" fill="#9E3327" opacity="0.15"/><circle cx="320.0" cy="20.7" r="2.8" fill="#F3EEE3" stroke="#9E3327" stroke-width="1.2"/><circle cx="320.0" cy="20.7" r="1.4" fill="#9E3327"/><circle cx="400.0" cy="66.0" r="4.5" fill="#9E3327" opacity="0.15"/><circle cx="400.0" cy="66.0" r="2.8" fill="#F3EEE3" stroke="#9E3327" stroke-width="1.2"/><circle cx="400.0" cy="66.0" r="1.4" fill="#9E3327"/>
+        <text x="2" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="start">N</text><text x="80.0" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">D</text><text x="160.0" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">J</text><text x="240.0" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">F</text><text x="320.0" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">M</text><text x="398" y="81" font-size="7" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="end" font-weight="700">M</text>
+      </svg>
+    </div>
+    <div style="font-size:10.5px;color:var(--sub);padding:7px 13px 0">Peaked at <b style="color:var(--ink)">$1,780</b> in February, then two straight months of decline.</div>
+    <div class="inside">
+      <span class="ilbl">inside ›</span>
+      <span class="it">6 months · Revenue vs what you kept</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM + INDICATORS -->
+<div class="g8 g31">
+  <div class="c prob-c" data-sh="problem">
+    <div class="prob-body">
+      <div class="prob-ey">
+        <span>Problem</span>
+      </div>
+      <div class="prob-n tn">−$9,390<small>/mo</small></div>
+      <div class="prob-t">Your costs went up 18%.<br>Your prices didn't move.</div>
+    </div>
+    <div class="prob-flow">
+      <div class="pf-row"><span class="nm">Barbers</span><span class="am">58%</span></div>
+      <div class="pf-row" style="border-top:1px solid var(--bd)"><span class="nm">Fixed costs</span><span class="am">38%</span></div>
+      <div class="pf-row" style="border-top:1px solid var(--bd)"><span class="nm">Yours</span><span class="am">4%</span></div>
+    </div>
+    <div style="font-size:10px;color:var(--sub);line-height:1.5;padding:8px 13px 0">Barber commissions, supplies, and apps all rose the same month — none of them optional.</div>
+    <div class="inside">
+      <span class="ilbl">inside ›</span>
+      <span class="it">Where your money goes · What the numbers say</span>
+    </div>
+  </div>
+
+  <div class="c ind-c" data-sh="score" data-anchor="score-signals">
+    <div class="ind"><span class="il">Profit</span><span class="is" style="color:var(--red)">Critical</span></div>
+    <div class="ind"><span class="il">Expenses</span><span class="is" style="color:var(--sub)">High</span></div>
+    <div class="ind"><span class="il">Revenue</span><span class="is" style="color:var(--sub)">Stable</span></div>
+    <div class="ind"><span class="il">Clients</span><span class="is" style="color:var(--ink)">Solid</span></div>
+    <div style="font-size:9.5px;color:var(--sub);padding:6px 0 0">3 active warning signals — threshold is 2.</div>
+    <div class="inside"><span class="it" style="font-size:8px">Warning signals ›</span></div>
+  </div>
+</div>
+
+<!-- BREAK-EVEN + SERVICES -->
+<div class="g8 g2" style="margin-top:8px">
+  <div class="c tile" data-sh="breakeven">
+    <div class="th">
+      <span class="tl">Break-even</span>
+    </div>
+    <div class="tv tn">$23,660</div>
+    <div class="tsub">$789/day · ~16 clients</div>
+    <div style="font-size:9.5px;color:var(--red);padding-top:6px">One slow week and you fall below break-even.</div>
+    <div class="inside">
+      <span class="ilbl">inside ›</span>
+      <span class="it">Your cushion · Alert</span>
+    </div>
+  </div>
+
+  <div class="c tile" data-sh="services">
+    <div class="th">
+      <span class="tl">Services</span>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px"><span style="color:var(--ink)">#1 Cut + beard</span><span class="badge">Low</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">#2 Fades</span><span class="badge" style="color:var(--green)">Best</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">#3 Classic</span><span class="badge">OK</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px;border-top:1px solid var(--bd)"><span style="color:var(--ink)">#5 Kids</span><span class="badge" style="color:var(--red)">Losing</span></div>
+    </div>
+    <div style="font-size:9.5px;color:var(--sub);line-height:1.5;padding-top:6px">The combo drives volume but returns the least per dollar.</div>
+    <div class="inside">
+      <span class="ilbl">inside ›</span>
+      <span class="it">5 ranked · 2 insights</span>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSE -->
+<div class="close-s">
+  <div class="close-ph">What's next.</div>
+  <div class="close-sb">Two concrete actions. No theory.</div>
+  <div class="cas">
+    <button class="ca week c" data-sh="move" data-anchor="move-when">
+      <div class="caw">This week</div>
+      <div class="cat"><b>Update the combo price</b> on your board and in your app. Same number, every chair, same day.</div>
+      <div style="font-size:9px;color:var(--dim);margin-top:7px">Full plan · Week 2 · Week 3–4 ›</div>
+    </button>
+    <button class="ca month c" data-sh="move" data-anchor="move-scenario">
+      <div class="caw">This month</div>
+      <div class="cat">At month end, count how many combos you sold. <b>Compare to the $940 baseline.</b> Send us the number.</div>
+      <div style="font-size:9px;color:var(--dim);margin-top:7px">Full scenario · what to watch ›</div>
+    </button>
+  </div>
+</div>
+
+<div class="foot" style="flex-direction:column;align-items:flex-start;gap:3px">
+  <div style="display:flex;justify-content:space-between;width:100%">
+    <span class="foot-l">Prepared by Acly · acly.co</span>
+    <span class="foot-r">Next diagnostic · June 2026</span>
+  </div>
+  <div style="font-size:8px;color:var(--dim);font-style:italic">Methodology: standard service-business margin ratios, reconciled against your April–May register data.</div>
+</div>
+
+</div>
+</div>
+
+<!-- ══ SHEETS ══ -->
+<div class="sh" id="move"><div class="si">
+  <div class="sb2"><span class="st">What you can do</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk"><div class="bh">This week · <span style="color:var(--green)">+$1,200/mo</span></div>
+    <p class="lead"><b>Raise the beard trim combo by $4.</b> Your costs went up 18% this year. Your prices didn't move. About 300 clients a month expect that service. <span style="color:var(--orange)">$4 more on each one is $1,200 back.</span> No new clients needed, no changes to the barbershop.</p>
+  </div>
+  <div class="blk"><div class="bh">How to do it</div>
+    <div class="step"><span class="no">1</span><span class="tx"><b>Update your board and your app:</b> combo goes up $4. This week — no announcement needed.</span></div>
+    <div class="step"><span class="no">2</span><span class="tx"><b>Tell every barber the new price</b> so everyone charges the same on every chair.</span></div>
+    <div class="step"><span class="no">3</span><span class="tx">At month end, count combos sold and confirm the ~$1,200 came through. Then we look at the next step.</span></div>
+  </div>
+  <div class="blk" id="move-when"><div class="bh">When</div>
+    <div class="tline"><span class="tw">This week</span><span class="tt">Update your board and app.</span></div>
+    <div class="tline"><span class="tw">Week 2</span><span class="tt">Brief every barber — same price, every chair, same day.</span></div>
+    <div class="tline"><span class="tw">Week 3–4</span><span class="tt">Watch — it's rare for anyone to push back on $4 for a service they already expect.</span></div>
+    <div class="tline"><span class="tw">Month end</span><span class="tt">Measure what you kept. Compare to the <b>$940 baseline</b>. Send us the number.</span></div>
+  </div>
+  <div class="blk"><div class="bh">What to watch</div>
+    <div class="wt"><div class="wh">Fear of losing clients</div><div class="wd">Nobody switches barbers over $4 on a service they already expect.</div></div>
+    <div class="wt"><div class="wh">One chair charges the old price</div><div class="wd">Same number, every chair, every day — or you lose the margin.</div></div>
+  </div>
+  <div class="blk" id="move-scenario"><div class="bh">Full scenario · now vs after</div>
+    <div class="drow"><span class="dk">What you keep per month</span><span class="dv tn" style="color:var(--red)">$940</span><span class="dd" style="color:var(--green)">→ $2,140</span></div>
+    <div class="drow"><span class="dk">Of every $1 that comes in</span><span class="dv tn">3.8¢</span><span class="dd" style="color:var(--green)">→ 8.7¢</span></div>
+    <div class="drow"><span class="dk">Above minimum</span><span class="dv tn">+$940</span><span class="dd" style="color:var(--green)">→ +$2,140</span></div>
+    <div class="drow"><span class="dk">Result above minimum</span><span class="dv tn">1×</span><span class="dd" style="color:var(--green)">→ 2.3×</span></div>
+  </div>
+</div></div>
+
+<div class="sh" id="trajectory"><div class="si">
+  <div class="sb2"><span class="st">Profit nearly doubled. Then it fell.</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk">
+    <div class="bh">6 months · Revenue vs profit</div>
+    <p class="lead">Four intense months. The last two: costs climbed without a rate adjustment.</p>
+    <div class="chart-legend" style="display:none;gap:14px;margin:10px 0 -2px;font-size:8px;color:var(--sub)">
+      <span>— Revenue</span><span>···· What you kept</span>
+    </div>
+    <svg viewBox="0 0 400 130" width="100%" height="130" data-chart-id="main-chart" style="margin:12px 0 8px">
+      <defs>
+        <linearGradient id="pfill2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1C1A16" stop-opacity=".04"/>
+          <stop offset="1" stop-color="#1C1A16" stop-opacity="0"/>
+        </linearGradient>
+        
+      </defs>
+      <path d="M0,9.6 L400,8.0" fill="none" stroke="#CBC1AB" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
+      <path d="M0.0,110.0 L80.0,70.8 L160.0,42.9 L240.0,16.0 L320.0,33.9 L400.0,110.0 L400.0,130 L0,130 Z" fill="url(#pfill2)"/>
+      <path class="revenue-line" d="" fill="none" stroke="#1C1A16" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <path class="kept-line" d="M0.0,110.0 L80.0,70.8 L160.0,42.9 L240.0,16.0 L320.0,33.9 L400.0,110.0" fill="none" stroke="#1C1A16" stroke-width="1.5" opacity="0.55" stroke-dasharray="3.5 2.5" vector-effect="non-scaling-stroke"/>
+      <circle cx="0.0" cy="110.0" r="5.5" fill="#1C1A16" opacity="0.15"/><circle cx="0.0" cy="110.0" r="3.5" fill="#F3EEE3" stroke="#1C1A16" stroke-width="1.3"/><circle cx="0.0" cy="110.0" r="1.7" fill="#1C1A16"/><circle cx="80.0" cy="70.8" r="5.5" fill="#1F2A44" opacity="0.15"/><circle cx="80.0" cy="70.8" r="3.5" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.3"/><circle cx="80.0" cy="70.8" r="1.7" fill="#1F2A44"/><circle cx="160.0" cy="42.9" r="5.5" fill="#1F2A44" opacity="0.15"/><circle cx="160.0" cy="42.9" r="3.5" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.3"/><circle cx="160.0" cy="42.9" r="1.7" fill="#1F2A44"/><circle cx="240.0" cy="16.0" r="5.5" fill="#1F2A44" opacity="0.15"/><circle cx="240.0" cy="16.0" r="3.5" fill="#F3EEE3" stroke="#1F2A44" stroke-width="1.3"/><circle cx="240.0" cy="16.0" r="1.7" fill="#1F2A44"/><circle cx="320.0" cy="33.9" r="5.5" fill="#9E3327" opacity="0.15"/><circle cx="320.0" cy="33.9" r="3.5" fill="#F3EEE3" stroke="#9E3327" stroke-width="1.3"/><circle cx="320.0" cy="33.9" r="1.7" fill="#9E3327"/><circle cx="400.0" cy="110.0" r="5.5" fill="#9E3327" opacity="0.15"/><circle cx="400.0" cy="110.0" r="3.5" fill="#F3EEE3" stroke="#9E3327" stroke-width="1.3"/><circle cx="400.0" cy="110.0" r="1.7" fill="#9E3327"/>
+      <text x="4" y="108" font-size="8" fill="#5B564B" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="700">$940</text>
+      <text x="396" y="108" font-size="8" fill="#9E3327" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="700" text-anchor="end">$940</text>
+      <text x="396" y="6" font-size="7" fill="#CBC1AB" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="end">$19.8k</text>
+      <text x="2" y="128" font-size="7.5" fill="#5B564B" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="start">N</text><text x="80.0" y="128" font-size="7.5" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">D</text><text x="160.0" y="128" font-size="7.5" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">J</text><text x="240.0" y="128" font-size="7.5" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">F</text><text x="320.0" y="128" font-size="7.5" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="middle">M</text><text x="398" y="128" font-size="7.5" fill="#8B8375" font-family="-apple-system,Helvetica,Arial,sans-serif" text-anchor="end" font-weight="700">M</text>
+    </svg>
+  </div>
+  <div class="blk" id="trajectory-compare">
+    <div class="bh">The numbers side by side</div>
+    <div class="tbl">
+      <div class="tbl-r tbl-h"><span></span><span>This month<br>May 2026</span><span>Last month<br>April 2026</span><span>Change</span></div>
+      <div class="tbl-r"><span class="tk">Revenue coming in</span><span class="tv tn">$24,600</span><span class="tv tn">$22,900</span><span class="tv tn">+$1,700</span></div>
+      <div class="tbl-r"><span class="tk" style="color:var(--red)">What you kept</span><span class="tv tn" style="color:var(--red)">$940</span><span class="tv tn">$1,560</span><span class="tv tn" style="color:var(--red)">−$620</span></div>
+      <div class="tbl-r"><span class="tk">Of every $1 that came in</span><span class="tv tn">3.8¢</span><span class="tv tn">6.8¢</span><span class="tv tn" style="color:var(--red)">−3¢</span></div>
+    </div>
+  </div>
+  <div class="blk">
+    <div class="bh">6 months ago vs today</div>
+    <div class="tbl">
+      <div class="tbl-r tbl-h"><span></span><span>6 mo. ago<br>Nov 2025</span><span>Today<br>May 2026</span><span>Change</span></div>
+      <div class="tbl-r"><span class="tk">Revenue</span><span class="tv tn">$17,200</span><span class="tv tn">$24,600</span><span class="tv tn">+$7,400</span></div>
+      <div class="tbl-r"><span class="tk">What you kept</span><span class="tv tn">$940</span><span class="tv tn">$940</span><span class="tv tn">—</span></div>
+    </div>
+  </div>
+
+  <!-- 6-MONTH HISTORIAL -->
+  <div class="blk"><div class="bh">Month by month · 6 months</div>
+    <div data-chart-months="main-chart"><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-bottom:14px">
+      <div style="text-align:center">
+        <div data-profit="1290" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Dec</div>
+        <div style="font-size:9px;font-weight:700;color:var(--ink)">$1,290</div>
+        <div style="font-size:7.5px;color:var(--sub);margin-top:1px">9.8%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--green-bg);margin-top:5px"><div style="width:72%;height:100%;background:var(--green);border-radius:2px"></div></div>
+      </div>
+      <div style="text-align:center">
+        <div data-profit="1540" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Jan</div>
+        <div style="font-size:9px;font-weight:700;color:var(--ink)">$1,540</div>
+        <div style="font-size:7.5px;color:var(--sub);margin-top:1px">8.2%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px"><div style="width:87%;height:100%;background:var(--sub);border-radius:2px"></div></div>
+      </div>
+      <div style="text-align:center">
+        <div data-profit="1780" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Feb</div>
+        <div style="font-size:9px;font-weight:700;color:var(--ink)">$1,780</div>
+        <div style="font-size:7.5px;color:var(--sub);margin-top:1px">6.4%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px"><div style="width:100%;height:100%;background:var(--dim);border-radius:2px"></div></div>
+      </div>
+      <div style="text-align:center">
+        <div data-profit="1620" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Mar</div>
+        <div style="font-size:9px;font-weight:700;color:var(--ink)">$1,620</div>
+        <div style="font-size:7.5px;color:var(--sub);margin-top:1px">6.6%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px"><div style="width:91%;height:100%;background:var(--dim);border-radius:2px"></div></div>
+      </div>
+      <div style="text-align:center">
+        <div data-profit="1560" style="display:none"></div><div style="font-size:7.5px;color:var(--dim);margin-bottom:4px">Apr</div>
+        <div style="font-size:9px;font-weight:700;color:var(--ink)">$1,560</div>
+        <div style="font-size:7.5px;color:var(--sub);margin-top:1px">6.8%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--bd);margin-top:5px"><div style="width:88%;height:100%;background:var(--dim);border-radius:2px"></div></div>
+      </div>
+      <div style="text-align:center">
+        <div data-profit="940" style="display:none"></div><div style="font-size:7.5px;color:var(--red);margin-bottom:4px;font-weight:700">May</div>
+        <div style="font-size:9px;font-weight:700;color:var(--red)">$940</div>
+        <div style="font-size:7.5px;color:var(--red);margin-top:1px">3.8%</div>
+        <div style="width:100%;height:3px;border-radius:2px;background:var(--red-bg);margin-top:5px"><div style="width:36%;height:100%;background:var(--red);border-radius:2px"></div></div>
+      </div>
+    </div>
+    <!-- COMPASS -->
+    <div style="border-top:1px solid var(--bd);padding-top:12px">
+      <div style="font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Trajectory</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:4px;border-radius:2px;background:var(--bd);position:relative;overflow:visible">
+          <div style="position:absolute;left:0;top:0;height:100%;width:42%;background:linear-gradient(90deg,var(--green),var(--red));border-radius:2px"></div>
+          <div style="position:absolute;left:42%;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--bg)"></div>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--red);white-space:nowrap">· Calculating</div>
+      </div>
+      <p class="lead" style="margin-top:10px">Calculating trend…</p>
+    </div>
+  </div>
+</div></div></div>
+
+<div class="sh" id="problem"><div class="si">
+  <div class="sb2"><span class="st">The problem</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk"><div class="bh">This month</div>
+    <p class="lead">Rent, barber commissions, and your app went up while your prices stayed frozen. <b>$9,390/mo</b> — of every dollar that comes in, 38 cents are gone before you keep anything.</p>
+    <div class="krow2 tn">
+      <div><div class="kk">Fixed expenses</div><div class="kv">38%</div></div>
+      <div><div class="kk">Increased</div><div class="kv">+18%</div></div>
+      <div><div class="kk">Total fixed costs</div><div class="kv">$9,390</div></div>
+    </div>
+  </div>
+
+  <!-- BREAKDOWN — cost structure by area -->
+  <div class="blk"><div class="bh">Where your money goes</div>
+    <div class="drow">
+      <span class="dk">Barber commissions</span>
+      <span class="dv tn">$14,270</span>
+      <span class="dd">58%</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Rent</span>
+      <span class="dv tn">$4,200</span>
+      <span class="dd">17%</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Supplies & products</span>
+      <span class="dv tn">$2,900</span>
+      <span class="dd">12%</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Apps & services</span>
+      <span class="dv tn">$1,490</span>
+      <span class="dd">6%</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Other fixed costs</span>
+      <span class="dv tn">$800</span>
+      <span class="dd">3%</span>
+    </div>
+    <div class="drow" style="border-top:2px solid var(--bd2);margin-top:2px">
+      <span class="dk" style="color:var(--ink);font-weight:700">Total costs</span>
+      <span class="dv tn">$23,660</span>
+      <span class="dd" style="color:var(--red)">96%</span>
+    </div>
+    <div class="drow">
+      <span class="dk" style="color:var(--green)">Yours</span>
+      <span class="dv tn" style="color:var(--red)">$940</span>
+      <span class="dd" style="color:var(--red)">4%</span>
+    </div>
+  </div>
+
+  <!-- WHAT MOVED THIS MONTH -->
+  <div class="blk"><div class="bh">What went up this month</div>
+    <div class="drow"><span class="dk">Barber commissions</span><span class="dv tn">$14,270</span><span class="dd" style="color:var(--red)">↑ +$820</span></div>
+    <div class="drow"><span class="dk">Rent</span><span class="dv tn">$4,200</span><span class="dd">no change</span></div>
+    <div class="drow"><span class="dk">Supplies & products</span><span class="dv tn">$2,900</span><span class="dd" style="color:var(--red)">↑ +$340</span></div>
+    <div class="drow"><span class="dk">Apps & services</span><span class="dv tn">$1,490</span><span class="dd" style="color:var(--red)">↑ +$190</span></div>
+    <p class="lead" style="margin-top:10px">Three costs went up the same month. None of them are optional. It's not overspending — it's that the cost structure absorbs the margin before it reaches you.</p>
+  </div>
+
+  <div class="blk vs"><div class="bh">What you feel vs what the numbers say</div>
+    <div class="sv" style="padding:11px 0"><div class="stag">What you said</div><div class="sq">"We're doing fine — sales went up and clients keep coming back."</div></div>
+    <div class="sv" style="padding:11px 0;border-top:1px solid var(--bd)"><div class="stag">What the numbers say</div><p class="lead">$24,600 came in. You kept <b style="color:var(--red)">$940</b>. Of every dollar that comes in, only 3.8¢ is yours. Being busier is making the problem worse, not better.</p></div>
+  </div>
+
+  <div class="blk"><div class="bh">Month 2</div><p class="lead">If the combo price holds, the next step is <b>kids cuts</b> — that chair slot costs more than it returns.</p></div>
+  <div class="blk"><div class="bh">Month 3</div><p class="lead">With margin recovered, the focus shifts to <b>costs</b> — commissions and whether any fixed cost can be renegotiated.</p></div>
+</div></div>
+
+<div class="sh" id="score"><div class="si">
+  <div class="sb2"><span class="st">Business health · 48/100</span><button class="sclose" data-close>✕</button></div>
+
+  <!-- 3 COMPONENTS -->
+  <div class="blk" id="score-areas"><div class="bh">3 areas</div>
+    <div class="drow">
+      <span class="dk">Profitability</span>
+      <span class="dv tn" style="color:var(--red)">31/100</span>
+      <span class="dd" style="color:var(--red)">Critical</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Cost structure</span>
+      <span class="dv tn" style="color:var(--sub)">52/100</span>
+      <span class="dd" style="color:var(--sub)">Unstable</span>
+    </div>
+    <div class="drow">
+      <span class="dk">Operational efficiency</span>
+      <span class="dv tn">61/100</span>
+      <span class="dd" style="color:var(--sub)">Acceptable</span>
+    </div>
+    <p class="lead" style="margin-top:12px">The root problem is <b>what you keep</b> — not operations. The barbershop runs fine. The problem is structural: costs are growing faster than revenue.</p>
+  </div>
+
+  <!-- SIGNALS -->
+  <div class="blk" id="score-signals"><div class="bh">Warning signals · May 2026</div>
+    <div class="area"><span class="an">Net margin below 5%</span><span class="as" style="color:var(--red)">Active</span></div>
+    <div class="area"><span class="an">Fixed expenses above 35%</span><span class="as" style="color:var(--red)">Active</span></div>
+    <div class="area"><span class="an">Profit declining for 3 consecutive months</span><span class="as" style="color:var(--red)">Active</span></div>
+    <div class="area"><span class="an">Growing revenue</span><span class="as" style="color:var(--ink)">OK</span></div>
+    <div class="area"><span class="an">Stable client retention</span><span class="as" style="color:var(--ink)">OK</span></div>
+    <div class="area"><span class="an">Above break-even</span><span class="as" style="color:var(--ink)">OK</span></div>
+    <p class="lead" style="margin-top:12px">3 active signals. Action threshold is 2. <b style="color:var(--red)">This diagnostic crosses that threshold.</b></p>
+  </div>
+
+  <!-- APRIL → MAY -->
+  <div class="blk"><div class="bh">April → May</div>
+    <div class="drow"><span class="dk">Revenue</span><span class="dv tn">$24,600</span><span class="dd">+$1,700</span></div>
+    <div class="drow"><span class="dk">Of every $1</span><span class="dv tn">3.8¢</span><span class="dd" style="color:var(--red)">−3¢</span></div>
+    <div class="drow"><span class="dk">What you kept</span><span class="dv tn" style="color:var(--red)">$940</span><span class="dd" style="color:var(--red)">−$620</span></div>
+    <div class="drow"><span class="dk">Score</span><span class="dv tn">48</span><span class="dd">−4 pts</span></div>
+  </div>
+</div></div>
+
+<div class="sh" id="breakeven"><div class="si">
+  <div class="sb2"><span class="st">Break-even</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk"><div class="bh">Before you make a dollar</div>
+    <p class="lead"><b>$23,660/mo</b> — that's what it costs to open the barbershop. Every dollar above that is yours.</p>
+    <div class="krow2 tn">
+      <div><div class="kk">Monthly minimum</div><div class="kv">$23,660</div></div>
+      <div><div class="kk">Per day</div><div class="kv">$789</div></div>
+      <div><div class="kk">Clients/day</div><div class="kv">~16</div></div>
+    </div>
+  </div>
+  <div class="blk"><div class="bh">Your cushion right now</div>
+    <div class="drow"><span class="dk">Above minimum</span><span class="dv tn" style="color:var(--red)">+$940</span><span class="dd">3.8% margin</span></div>
+    <div class="drow"><span class="dk">After the price adjustment</span><span class="dv tn">+$2,140</span><span class="dd">8.7% margin</span></div>
+  </div>
+  <div class="blk"><div class="bh">Alert</div>
+    <p class="lead" style="color:var(--red)">Your margin is <b>3.8%</b>. One slow week and you fall below break-even.</p>
+  </div>
+</div></div>
+
+<div class="sh" id="services"><div class="si">
+  <div class="sb2"><span class="st">Services · by real margin</span><button class="sclose" data-close>✕</button></div>
+  <div class="blk"><div class="bh">Ranked by what they leave</div>
+    <div class="svc"><span class="rk">1</span><div class="sinfo"><div class="sn">Cut + beard</div><div class="sb">42% of revenue · ~300/mo</div></div><span class="badge">Low</span></div>
+    <div class="svc"><span class="rk">2</span><div class="sinfo"><div class="sn">Fades & design</div><div class="sb">11% of revenue</div></div><span class="badge" style="color:var(--green)">Best</span></div>
+    <div class="svc"><span class="rk">3</span><div class="sinfo"><div class="sn">Classic cut</div><div class="sb">28% of revenue</div></div><span class="badge">OK</span></div>
+    <div class="svc"><span class="rk">4</span><div class="sinfo"><div class="sn">Beard trim</div><div class="sb">14% of revenue</div></div><span class="badge">OK</span></div>
+    <div class="svc"><span class="rk">5</span><div class="sinfo"><div class="sn">Kids cut</div><div class="sb">5% of revenue</div></div><span class="badge" style="color:var(--red)">Losing</span></div>
+  </div>
+  <div class="blk"><div class="bh">What we found</div>
+    <div class="ins"><div class="il">The combo drives the barbershop — but it's not returning what it should.</div><div class="it">The most-requested service, but the one that leaves the least per dollar. A $4 adjustment changes this more than anything else.</div></div>
+    <div class="ins"><div class="il">Kids cuts cost you the chair slot.</div><div class="it">Low price + full chair time. Worth evaluating if that slot returns more with a standard cut.</div></div>
+  </div>
+</div></div>
+
+<script>
+// ── PASSWORD ──
+var PW = 'y1s6022';
+var pwScreen = document.getElementById('pw-screen');
+var pwInput  = document.getElementById('pw-input');
+var pwBtn    = document.getElementById('pw-btn');
+var pwErr    = document.getElementById('pw-err');
+var loader   = document.getElementById('loader');
+var main     = document.getElementById('main');
+
+function tryUnlock(){
+  if(pwInput.value === PW){
+    pwScreen.classList.add('out');
+    setTimeout(function(){
+      pwScreen.style.display='none';
+      loader.style.display='flex';
+      setTimeout(function(){
+        loader.classList.add('out');
+        main.classList.add('show');
+        animateNumbers();
+        setTimeout(function(){loader.style.display='none'},450);
+      },1200);
+    },350);
+  } else {
+    pwErr.textContent='Incorrect access code.';
+    pwInput.classList.add('err');
+    setTimeout(function(){pwInput.classList.remove('err');pwErr.textContent='';},700);
+    pwInput.value='';
+    pwInput.focus();
+  }
+}
+pwBtn.addEventListener('click', tryUnlock);
+pwInput.addEventListener('keydown', function(e){ if(e.key==='Enter') tryUnlock(); });
+
+// ── COUNT-UP: hero numbers land with motion instead of popping in ──
+var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(node, duration){
+  var raw = node.textContent;
+  var m = raw.match(/-?[\d,]+\.?\d*/);
+  if(!m) return;
+  var numStr = m[0].replace(/,/g,'');
+  var endVal = parseFloat(numStr);
+  var decimals = numStr.indexOf('.') > -1 ? numStr.split('.')[1].length : 0;
+  var prefix = raw.slice(0, m.index);
+  var suffix = raw.slice(m.index + m[0].length);
+  var t0 = null;
+  function step(ts){
+    if(!t0) t0 = ts;
+    var p = Math.min((ts - t0) / duration, 1);
+    var e = 1 - Math.pow(1 - p, 3);
+    var cur = endVal * e;
+    var disp = decimals > 0 ? cur.toFixed(decimals) : Math.round(cur).toLocaleString('en-US');
+    node.textContent = prefix + disp + suffix;
+    if(p < 1) requestAnimationFrame(step); else node.textContent = raw;
+  }
+  requestAnimationFrame(step);
+}
+function animateNumbers(){
+  if(reduceMotion) return;
+  document.querySelectorAll('.score-n, .kc .kv').forEach(function(el){ countUp(el, 750); });
+  var moveBig = document.querySelector('.move-big');
+  if(moveBig && moveBig.firstChild) countUp(moveBig.firstChild, 750);
+}
+
+// ── SHEETS ──
+var body = document.body;
+document.querySelectorAll('[data-sh]').forEach(function(el){
+  el.addEventListener('click', function(){
+    var s = document.getElementById(el.getAttribute('data-sh'));
+    if(!s) return;
+    s.classList.add('open'); body.style.overflow='hidden';
+    var anchorId = el.getAttribute('data-anchor');
+    var target = anchorId ? document.getElementById(anchorId) : null;
+    if(target){
+      requestAnimationFrame(function(){ target.scrollIntoView({block:'start',behavior:'smooth'}); });
+    } else {
+      s.scrollTop = 0;
+    }
+  });
+});
+document.querySelectorAll('[data-close]').forEach(function(b){
+  b.addEventListener('click', function(){
+    b.closest('.sh').classList.remove('open'); body.style.overflow='';
+  });
+});
+document.querySelectorAll('.sh').forEach(function(s){
+  s.addEventListener('click', function(e){
+    if(e.target===s){ s.classList.remove('open'); body.style.overflow=''; }
+  });
+});
+</script>
+<script>
+// ── CHART & HISTORIAL FIX ──
+// Reads data-profit from each month column,
+// displays the real profit number, computes bar widths proportionally,
+// redraws the small SVG path from real data, and fixes the brujula.
+try {
+(function(){
+  function fmt(n){ return '$'+n.toLocaleString('en-US'); }
+
+  // ── 1. HISTORIAL: read real profit values, fix display numbers + bars ──
+  document.querySelectorAll('[data-chart-months]').forEach(function(container){
+    var cols = container.querySelectorAll('[data-profit]');
+    if(!cols.length) return;
+
+    // Build array of {el, profit, monthEl, bigNumEl, pctEl, barInnerEl}
+    var months = [];
+    cols.forEach(function(profitDiv){
+      var col = profitDiv.parentElement;
+      var children = Array.from(col.children).filter(function(c){ return c !== profitDiv; });
+      months.push({
+        profitDiv: profitDiv,
+        col: col,
+        profit: parseInt(profitDiv.getAttribute('data-profit'), 10)
+      });
+    });
+
+    var maxP = Math.max.apply(null, months.map(function(m){ return m.profit; }));
+    var minP = Math.min.apply(null, months.map(function(m){ return m.profit; }));
+    var lastProfit = months[months.length-1].profit;
+
+    months.forEach(function(m, i){
+      var col = m.col;
+      var pct = Math.round(m.profit / maxP * 100);
+      var isLast = (i === months.length - 1);
+
+      // Find the big number div (font-size:10px font-weight:700)
+      // It's the 2nd visible child after the month label
+      var visibleDivs = Array.from(col.children).filter(function(c){
+        return c.style.display !== 'none';
+      });
+      // visibleDivs[0] = month label, visibleDivs[1] = big number, visibleDivs[2] = pct, visibleDivs[3] = bar wrapper
+      if(visibleDivs[1]) visibleDivs[1].textContent = fmt(m.profit);
+
+      // Fix margin % — recompute from profit display context isn't possible without revenue,
+      // so we keep existing pct text but color it correctly
+      // (pct text stays as-is from template — it's a separate editorial decision)
+
+      // Fix bar width
+      var barWrapper = visibleDivs[3];
+      if(barWrapper){
+        var barInner = barWrapper.querySelector('div');
+        if(barInner){
+          barInner.style.width = pct + '%';
+          // Color: last month = red if it's the lowest or has dropped
+          var dropped = (i > 0) && (m.profit <= months[i-1].profit * 0.85);
+          if(isLast && m.profit === minP){
+            barWrapper.style.background = 'rgba(158,51,39,.07)';
+            barInner.style.background = 'var(--red)';
+          } else if(m.profit >= maxP * 0.95){
+            barWrapper.style.background = 'rgba(31,42,68,.06)';
+            barInner.style.background = 'var(--green)';
+          } else {
+            barWrapper.style.background = 'var(--bd)';
+            barInner.style.background = 'var(--sub)';
+          }
+        }
+      }
+    });
+
+    // ── 2. COMPASS: position dot based on actual trend ──
+    // Trend = last value vs peak: closer to right = worse (more red)
+    // Position 0% = peak (green), 100% = lowest (red)
+    var peakIdx = months.reduce(function(best,m,i){ return m.profit > months[best].profit ? i : best; }, 0);
+    var lastIdx = months.length - 1;
+    // If we peaked early and have fallen, dot is toward red end
+    var progressToWorst = 0;
+    if(peakIdx < lastIdx){
+      var drop = months[peakIdx].profit - months[lastIdx].profit;
+      var totalRange = months[peakIdx].profit - minP;
+      progressToWorst = totalRange > 0 ? Math.round(drop / totalRange * 100) : 0;
+    }
+    progressToWorst = Math.max(20, Math.min(90, progressToWorst));
+
+    var brujula = container.parentElement ? container.parentElement.querySelector('[style*="Trajectory"], [style*="trajectory"]') : null;
+    // Find trajectory section by looking for the gradient bar
+    var trajSection = null;
+    var allDivs = container.closest('.blk') ? container.closest('.blk').querySelectorAll('div') : [];
+    allDivs.forEach(function(d){
+      if(d.style && d.style.background && d.style.background.indexOf('linear-gradient') > -1 && d.style.background.indexOf('green') > -1){
+        trajSection = d.parentElement.parentElement.parentElement;
+      }
+    });
+
+    if(trajSection){
+      var gradBar = trajSection.querySelector('[style*="linear-gradient"]');
+      var dot = trajSection.querySelector('[style*="border-radius:50%"]');
+      var label = trajSection.querySelector('[style*="white-space:nowrap"]');
+      var desc = trajSection.querySelector('.lead, p');
+
+      if(dot) dot.style.left = progressToWorst + '%';
+
+      // Fix label and color
+      var isFalling = months[lastIdx].profit < months[lastIdx > 0 ? lastIdx-1 : 0].profit;
+      var isRecovering = !isFalling && months[lastIdx].profit < months[peakIdx].profit;
+      var isGrowing = months[lastIdx].profit >= months[peakIdx].profit;
+
+      if(dot){
+        if(progressToWorst > 60){
+          dot.style.background = 'var(--red)';
+        } else if(progressToWorst > 30){
+          dot.style.background = 'var(--red)';
+        } else {
+          dot.style.background = 'var(--green)';
+        }
+      }
+      if(label){
+        if(isFalling){
+          label.style.color = 'var(--red)';
+          label.textContent = '↓ Declining';
+        } else if(isRecovering){
+          label.style.color = 'var(--sub)';
+          label.textContent = '→ Stabilizing';
+        } else {
+          label.style.color = 'var(--green)';
+          label.textContent = '↑ Improving';
+        }
+      }
+      if(desc){
+        var peakProfit = months[peakIdx].profit;
+        var currentProfit = months[lastIdx].profit;
+        if(isFalling){
+          desc.innerHTML = 'Profit has declined from a peak of <b>' + fmt(peakProfit) + '</b> to <b style="color:var(--red)">' + fmt(currentProfit) + '</b>. Costs are outpacing revenue growth.';
+        } else if(isRecovering){
+          desc.innerHTML = 'Profit dipped from the peak of <b>' + fmt(peakProfit) + '</b> but has stabilized at <b>' + fmt(currentProfit) + '</b>. One more month of data will clarify the direction.';
+        } else {
+          desc.innerHTML = 'Profit has grown consistently, reaching <b style="color:var(--green)">' + fmt(currentProfit) + '</b>. The structure is working.';
+        }
+      }
+    }
+  });
+
+  // ── 3. SMALL PREVIEW SVG: redraw path from real data-profit values ──
+  document.querySelectorAll('svg[data-chart-id]').forEach(function(svg){
+    var chartId = svg.getAttribute('data-chart-id');
+    // Find the historial container that corresponds to this chart
+    var container = document.querySelector('[data-chart-months="' + chartId + '"]');
+    if(!container) return;
+
+    var profitDivs = container.querySelectorAll('[data-profit]');
+    if(profitDivs.length < 2) return;
+
+    var profits = Array.from(profitDivs).map(function(d){ return parseInt(d.getAttribute('data-profit'), 10); });
+
+    // Revenue is optional — only present once L1 emits monthly revenue history.
+    // If it's not there yet, we draw the single kept-line exactly as before (no fabricated numbers).
+    var revenueDivs = container.querySelectorAll('[data-revenue]');
+    var hasRevenue = revenueDivs.length === profitDivs.length && revenueDivs.length > 0;
+    var revenues = hasRevenue ? Array.from(revenueDivs).map(function(d){ return parseInt(d.getAttribute('data-revenue'), 10); }) : null;
+
+    var maxP = Math.max.apply(null, hasRevenue ? profits.concat(revenues) : profits);
+    var minP = Math.min.apply(null, hasRevenue ? profits.concat(revenues) : profits);
+
+    // SVG viewBox dimensions
+    var vbMatch = svg.getAttribute('viewBox').match(/0 0 (\d+) (\d+)/);
+    if(!vbMatch) return;
+    var W = parseInt(vbMatch[1]);
+    var H = parseInt(vbMatch[2]);
+    var padT = Math.round(H * 0.10);
+    var padB = Math.round(H * 0.12);
+    var chartH = H - padT - padB;
+    var n = profits.length;
+
+    function yForProfit(p){
+      if(maxP === minP) return padT + chartH/2;
+      return padT + chartH * (1 - (p - minP) / (maxP - minP));
+    }
+
+    var pts = profits.map(function(p, i){
+      return { x: Math.round(W / (n-1) * i), y: Math.round(yForProfit(p) * 10) / 10 };
+    });
+
+    // Build path strings
+    var linePath = pts.map(function(pt, i){ return (i===0?'M':'L') + pt.x + ',' + pt.y; }).join(' ');
+    var fillPath = linePath + ' L' + pts[pts.length-1].x + ',' + H + ' L0,' + H + ' Z';
+
+    // Kept-line (dotted) — always present
+    var keptPath = svg.querySelector('.kept-line');
+    if(keptPath) keptPath.setAttribute('d', linePath);
+
+    // Fill area under the kept-line
+    svg.querySelectorAll('path[fill^="url"]').forEach(function(p){
+      p.setAttribute('d', fillPath);
+    });
+
+    // Revenue-line (solid) — only when L1 has emitted real monthly revenue history.
+    // No revenue data yet -> leave d="" so nothing fake gets drawn.
+    var revenuePath = svg.querySelector('.revenue-line');
+    if(revenuePath){
+      if(hasRevenue){
+        var revPts = revenues.map(function(r, i){
+          return { x: Math.round(W / (n-1) * i), y: Math.round(yForProfit(r) * 10) / 10 };
+        });
+        revenuePath.setAttribute('d', revPts.map(function(pt, i){ return (i===0?'M':'L') + pt.x + ',' + pt.y; }).join(' '));
+      } else {
+        revenuePath.setAttribute('d', '');
+      }
+    }
+    var legend = svg.closest('.blk') && svg.closest('.blk').querySelector('.chart-legend');
+    if(legend) legend.style.display = hasRevenue ? 'flex' : 'none';
+
+    // Update start/end circles
+    svg.querySelectorAll('circle').forEach(function(c){
+      var cx = parseFloat(c.getAttribute('cx'));
+      if(cx < 5){
+        c.setAttribute('cy', pts[0].y);
+      } else if(cx > W - 5){
+        c.setAttribute('cy', pts[pts.length-1].y);
+      } else if(Math.abs(cx - pts[Math.floor(n/2)].x) < 5){
+        // mid circle if any - skip
+      }
+    });
+
+    // Fix SVG text labels: remove wrong dollar labels, keep month letters
+    // Find and fix the floating $ labels (not the month letters)
+    svg.querySelectorAll('text').forEach(function(t){
+      var txt = t.textContent.trim();
+      // Month letter labels: single char N D J F M A
+      if(/^[NDJFMA]$/.test(txt)) return;
+      // These are the $ labels we need to fix
+      var x = parseFloat(t.getAttribute('x'));
+      var y = parseFloat(t.getAttribute('y'));
+      if(x < 10){
+        // Start label (first point)
+        t.textContent = fmt(profits[0]);
+        t.setAttribute('y', Math.min(pts[0].y + 12, H - 4));
+        t.setAttribute('fill', '#5B564B');
+        t.setAttribute('font-weight', '');
+      } else if(x > W * 0.8){
+        // Could be end label or revenue label
+        // Check y position: if near top = revenue line label, if mid = end profit label
+        if(y < H * 0.25){
+          // Revenue reference line label — leave it
+        } else {
+          t.textContent = fmt(profits[profits.length-1]);
+          t.setAttribute('y', Math.min(pts[pts.length-1].y + 12, H - 4));
+          t.setAttribute('fill', '#9E3327');
+          t.setAttribute('font-weight', '700');
+        }
+      }
+    });
+  });
+
+})();
+} catch(e){ console.warn("Chart fix error:", e); }
+</script>
+
+
+</body>
+</html>
