@@ -776,7 +776,7 @@ svg.ic{display:block;flex:none}
 
 <script>
 // ── PASSWORD ──
-var PW = 'y1s6022';
+var PWD = '905ac24cc0aaa48a8ebcf261c6aed1c540bdbb18252fd3067ff0920c6d9a1dea';
 var pwScreen = document.getElementById('pw-screen');
 var pwInput  = document.getElementById('pw-input');
 var pwBtn    = document.getElementById('pw-btn');
@@ -784,8 +784,11 @@ var pwErr    = document.getElementById('pw-err');
 var loader   = document.getElementById('loader');
 var main     = document.getElementById('main');
 
-function tryUnlock(){
-  if(pwInput.value === PW){
+async function tryUnlock(){
+  const buf = await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(pwInput.value.toLowerCase().trim()));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === PWD){
     pwScreen.classList.add('out');
     setTimeout(function(){
       pwScreen.style.display='none';
